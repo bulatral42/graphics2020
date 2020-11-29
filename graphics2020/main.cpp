@@ -4,6 +4,8 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+#include "Shaders/shader.h"
+
 
 void key_callback(GLFWwindow* window, int key,
 	int scancode, int action, int mode) {
@@ -12,30 +14,6 @@ void key_callback(GLFWwindow* window, int key,
 	}
 }
 
-
-// Shaders
-const GLchar* vertexShaderSource = "#version 330 core\n"
-"layout(location = 0) in vec3 position;\n"
-"void main()"
-"{\n"
-"gl_Position = vec4(position.x, position.y, position.z, 1.0f);\n"
-"}\n";
-
-const GLchar* fragmentShaderPinkSource = 
-"#version 330 core\n"
-"out vec4 color;\n"
-"void main()\n"
-"{\n"
-"color = vec4(1.0f, 0.1f, 0.5f, 1.0f);\n"
-"}\n";
-
-const GLchar* fragmentShaderBlackSource = 
-"#version 330 core\n"
-"out vec4 color;\n"
-"void main()\n"
-"{\n"
-"color = vec4(0.0f, 0.0f, 0.0f, 1.0f);\n"
-"}\n";
 
 // Window dimensions
 const GLuint WIDTH = 800, HEIGHT = 600;
@@ -71,72 +49,15 @@ int main()
 	glfwSetKeyCallback(window, key_callback);
 
 	// Shaders
-	GLint success;
-	GLchar infoLog[512];
-
-	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-	glCompileShader(vertexShader);
-	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-	if (!success) {
-		glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n";
-		std::cout << infoLog << std::endl;
-	}
-
-	GLuint fragmentShaderPink = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragmentShaderPink, 1, &fragmentShaderPinkSource, NULL);
-	glCompileShader(fragmentShaderPink);
-	glGetShaderiv(fragmentShaderPink, GL_COMPILE_STATUS, &success);
-	if (!success) {
-		glGetShaderInfoLog(fragmentShaderPink, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n";
-		std::cout << "PINK\n" << infoLog << std::endl;
-	}
-
-	GLuint fragmentShaderBlack = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragmentShaderBlack, 1, &fragmentShaderBlackSource, NULL);
-	glCompileShader(fragmentShaderBlack);
-	glGetShaderiv(fragmentShaderBlack, GL_COMPILE_STATUS, &success);
-	if (!success) {
-		glGetShaderInfoLog(fragmentShaderBlack, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n";
-		std::cout << "BLACK\n" << infoLog << std::endl;
-	}
-
-	GLuint shaderProgramPink = glCreateProgram();
-	glAttachShader(shaderProgramPink, vertexShader);
-	glAttachShader(shaderProgramPink, fragmentShaderPink);
-	glLinkProgram(shaderProgramPink);
-	glGetProgramiv(shaderProgramPink, GL_COMPILE_STATUS, &success);
-	if (!success) {
-		glGetProgramInfoLog(shaderProgramPink, 512, NULL, infoLog);
-		std::cout << "ERROR::PROGRAM::LINKAGE_FAILED\n";
-		std::cout << "PINK\n" << infoLog << std::endl;
-	}
-
-	GLuint shaderProgramBlack = glCreateProgram();
-	glAttachShader(shaderProgramBlack, vertexShader);
-	glAttachShader(shaderProgramBlack, fragmentShaderBlack);
-	glLinkProgram(shaderProgramBlack);
-	glGetProgramiv(shaderProgramBlack, GL_COMPILE_STATUS, &success);
-	if (!success) {
-		glGetProgramInfoLog(shaderProgramBlack, 512, NULL, infoLog);
-		std::cout << "ERROR::PROGRAM::LINKAGE_FAILED\n";
-		std::cout << "BLACK\n" << infoLog << std::endl;
-	}
-
-	glDeleteShader(vertexShader);
-	glDeleteShader(fragmentShaderPink);
-	glDeleteShader(fragmentShaderBlack);
-
+	Shader ourShaderGrad("C:/Users/HP/source/repos/graphics2020/LibStuff/Include/Shaders/src/vshader1.vsh", "C:/Users/HP/source/repos/graphics2020/LibStuff/Include/Shaders/src/fshader1.frag");
+	Shader ourShaderChange("C:/Users/HP/source/repos/graphics2020/LibStuff/Include/Shaders/src/vshader2.vsh", "C:/Users/HP/source/repos/graphics2020/LibStuff/Include/Shaders/src/fshader2.frag");
 
 
 	// Vertices
 	GLfloat vertTriangle[] = {
-	    -0.5f,  0.0f, 0.0f,
-	     0.0f, -0.5f, 0.0f,
-	    -0.5f, -0.5f, 0.0f,
+	    -0.5f,  0.0f, 0.0f,  1.0f, 0.0f, 0.0f,
+	     0.0f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,
+	    -0.5f, -0.5f, 0.0f,  0.0f, 0.0f, 1.0f
 	};
 
 	GLfloat vertRectangle[] = {
@@ -161,8 +82,11 @@ int main()
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertTriangle),
 		vertTriangle, GL_STATIC_DRAW);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 
-		                  3 * sizeof(GLfloat), (GLvoid*)0);
+            6 * sizeof(GLfloat), (GLvoid*)0);
 	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE,
+		    6 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(1);
 	glBindVertexArray(0);
 
 	GLuint EBO;
@@ -192,14 +116,18 @@ int main()
 		glClearColor(0.2f, 0.8f, 0.9f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 		
-		glUseProgram(shaderProgramPink);
 		// Draw the first triangle using the data from our first VAO
+		ourShaderGrad.Use();
 		glBindVertexArray(VAO[0]);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
-
-		glUseProgram(shaderProgramBlack);
+		
+		ourShaderChange.Use();
+		GLfloat timeValue = glfwGetTime();
+		GLfloat greenValue = (sin(timeValue) / 2) + 0.5;
+		glUniform4f(glGetUniformLocation(ourShaderChange.Program, "ourColor"), 0.0f, greenValue, 0.0f, 1.0f);		
 		glBindVertexArray(VAO[1]);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
 		glBindVertexArray(0);
 
 		glfwSwapBuffers(window);
