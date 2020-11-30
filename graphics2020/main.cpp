@@ -50,42 +50,24 @@ int main()
 
 	// Shaders
 	Shader ourShaderGrad("../LibStuff/Include/Shaders/src/vshader1.vsh", "../LibStuff/Include/Shaders/src/fshader1.frag");
-	//Shader ourShaderChange("../LibStuff/Include/Shaders/src/vshader2.vsh", "../LibStuff/Include/Shaders/src/fshader2.frag");
-
 
 	// Vertices
-	GLfloat vertRectangle[] = {
-		0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // Верхний правый
-	    0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // Нижний правый
-	   -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // Нижний левый
-	   -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // Верхний левый
+	GLfloat vertTriangle[] = {
+	   -0.5f, -0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,
+	    0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   4.0f, 0.0f,
+	    0.0f,  0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   2.0f, 4.0f
 	};
 
-	GLuint indices[] = {
-		0, 1, 3,
-		1, 2, 3
-	};
 
-	GLfloat textColors[] = {
-		0.0f, 0.0f,
-		1.0f, 0.0f,
-		0.5f, 1.0f
-	};
-
-	GLuint VBO, VAO, EBO;
+	GLuint VBO, VAO;
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
-	glGenBuffers(1, &EBO);
 
 	glBindVertexArray(VAO);
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertRectangle),
-		vertRectangle, GL_STATIC_DRAW);
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices),
-		indices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertTriangle),
+		vertTriangle, GL_STATIC_DRAW);
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 
             8 * sizeof(GLfloat), (GLvoid*)0);
@@ -98,10 +80,10 @@ int main()
 	glEnableVertexAttribArray(2);
 	glBindVertexArray(0);
 
-	
-	GLuint texture;
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
+
+	GLuint texture1, texture2;
+	glGenTextures(1, &texture1);
+	glBindTexture(GL_TEXTURE_2D, texture1);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
@@ -115,7 +97,24 @@ int main()
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, textWidth, textHeight,
 	    	0, GL_RGB, GL_UNSIGNED_BYTE, image);
 	glGenerateMipmap(GL_TEXTURE_2D);
+	SOIL_free_image_data(image);
+	glBindTexture(GL_TEXTURE_2D, 0);
 
+
+	glGenTextures(1, &texture2);
+	glBindTexture(GL_TEXTURE_2D, texture2);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	image = SOIL_load_image("awesomeface.png", &textWidth, &textHeight, 0, SOIL_LOAD_RGB);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, textWidth, textHeight,
+		0, GL_RGB, GL_UNSIGNED_BYTE, image);
+	glGenerateMipmap(GL_TEXTURE_2D);
 	SOIL_free_image_data(image);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -129,16 +128,19 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT);
 		
 		// Draw the first triangle using the data from our first VAO
-		glBindTexture(GL_TEXTURE_2D, texture);
 		ourShaderGrad.Use();
 		
-		/*ourShaderChange.Use();
-		GLfloat timeValue = glfwGetTime();
-		GLfloat greenValue = (sin(timeValue) / 2) + 0.5;
-		glUniform4f(glGetUniformLocation(ourShaderChange.Program, "ourColor"), 0.0f, greenValue, 0.0f, 1.0f);	
-		*/
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture1);
+		glUniform1i(glGetUniformLocation(ourShaderGrad.Program, "ourTexture1"), 0);
+
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, texture2);
+		glUniform1i(glGetUniformLocation(ourShaderGrad.Program, "ourTexture2"), 1);
+		
+		
 		glBindVertexArray(VAO);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		glDrawArrays(GL_TRIANGLES, 0, 3);
 		glBindVertexArray(0);
 
 		glfwSwapBuffers(window);
@@ -146,7 +148,6 @@ int main()
 
 	glDeleteVertexArrays(1, &VAO);
 	glDeleteBuffers(1, &VBO);
-	glDeleteBuffers(1, &EBO);
 	glfwTerminate();
 	return 0;
 }
