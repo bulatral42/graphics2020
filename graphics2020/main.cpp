@@ -7,16 +7,28 @@
 #include "Shaders/shader.h"
 
 
+GLfloat mixValue = 0.2f;
+
+
 void key_callback(GLFWwindow* window, int key,
 	int scancode, int action, int mode) {
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
 		glfwSetWindowShouldClose(window, GL_TRUE);
+	} else if (key == GLFW_KEY_UP && action == GLFW_PRESS) {
+		mixValue += 0.1f;
+		mixValue = mixValue >= 1.0f ? 1.0f : mixValue;
+	} else if (key == GLFW_KEY_DOWN && action == GLFW_PRESS) {
+		mixValue -= 0.1f;
+		mixValue = mixValue <= 0.0f ? 0.0f : mixValue;
 	}
 }
 
 
 // Window dimensions
 const GLuint WIDTH = 800, HEIGHT = 600;
+
+
+
 
 int main()
 {
@@ -138,7 +150,8 @@ int main()
 		glBindTexture(GL_TEXTURE_2D, texture2);
 		glUniform1i(glGetUniformLocation(ourShaderGrad.Program, "ourTexture2"), 1);
 		
-		
+		glUniform1f(glGetUniformLocation(ourShaderGrad.Program, "mixValue"), mixValue);
+
 		glBindVertexArray(VAO);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 		glBindVertexArray(0);
