@@ -28,7 +28,7 @@ void key_callback(GLFWwindow* window, int key,
 
 
 // Window dimensions
-const GLuint WIDTH = 800, HEIGHT = 600;
+const GLuint WIDTH = 1400, HEIGHT = 700;
 
 
 
@@ -148,6 +148,18 @@ int main()
 	SOIL_free_image_data(image);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
+	glm::vec3 uniquePositions[] = {
+        glm::vec3(0.0f,  0.0f,  0.0f),
+        glm::vec3(2.0f,  5.0f, -15.0f),
+        glm::vec3(-1.5f, -2.2f, -2.5f),
+        glm::vec3(-3.8f, -2.0f, -12.3f),
+        glm::vec3(2.4f, -0.4f, -3.5f),
+        glm::vec3(-1.7f,  3.0f, -7.5f),
+        glm::vec3(1.3f, -2.0f, -2.5f),
+        glm::vec3(1.5f,  2.0f, -2.5f),
+        glm::vec3(1.5f,  0.2f, -1.5f),
+        glm::vec3(-1.3f,  1.0f, -1.5f)
+	};
 
 	// Run
 	// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -169,26 +181,26 @@ int main()
 		glBindTexture(GL_TEXTURE_2D, texture2);
 		glUniform1i(glGetUniformLocation(ourShaderGrad.Program, "ourTexture2"), 1);
 		
-		glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(1.5f, 1.5f, 1.5f));
-		model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
-		glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -3.0f));
-		glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
+		for (size_t i = 0; i < 10; ++i) {
+			glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(0.5f, 0.5f, 0.5f));
+			GLfloat angle = (GLfloat)glfwGetTime() * glm::radians(50.0f) + 20.0f * i;
+			model = glm::rotate(model, angle, glm::vec3(0.5f, 1.0f, 0.0f));
+			model = glm::translate(model, uniquePositions[i]); 
+			glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -3.0f));
+			glm::mat4 projection = glm::perspective(glm::radians(45.0f), (GLfloat)WIDTH / (GLfloat)HEIGHT, 0.1f, 100.0f);
 
-		GLuint transLoc = glGetUniformLocation(ourShaderGrad.Program, "model");
-		glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(model));
-		transLoc = glGetUniformLocation(ourShaderGrad.Program, "view");
-		glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(view));
-		transLoc = glGetUniformLocation(ourShaderGrad.Program, "projection");
-		glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(projection));
+			GLuint transLoc = glGetUniformLocation(ourShaderGrad.Program, "model");
+			glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(model));
+			transLoc = glGetUniformLocation(ourShaderGrad.Program, "view");
+			glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(view));
+			transLoc = glGetUniformLocation(ourShaderGrad.Program, "projection");
+			glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(projection));
+			glUniform1f(glGetUniformLocation(ourShaderGrad.Program, "mixValue"), mixValue);
 
-		glUniform1f(glGetUniformLocation(ourShaderGrad.Program, "mixValue"), mixValue);
-
-		glBindVertexArray(VAO);
-		glDrawArrays(GL_TRIANGLES, 0, 12);
-		glBindVertexArray(0);
-
-
-
+			glBindVertexArray(VAO);
+			glDrawArrays(GL_TRIANGLES, 0, 12);
+			glBindVertexArray(0);
+		}
 
 		/*
 		// Draw the first triangle using the data from our first VAO
