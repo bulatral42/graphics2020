@@ -68,9 +68,22 @@ int main()
 
 	// Vertices
 	GLfloat vertTriangle[] = {
-	   -0.5f, -0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,
-	    0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   4.0f, 0.0f,
-	    0.0f,  0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   2.0f, 4.0f
+		-0.5f, -0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,
+		0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   4.0f, 0.0f,
+		0.0f,  0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   2.0f, 4.0f,
+
+		0.5f, -0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,
+		0.0f, -0.5f, -0.5f,   0.0f, 1.0f, 0.0f,   4.0f, 0.0f,
+		0.0f,  0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   2.0f, 4.0f,
+
+		0.0f, -0.5f, -0.5f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,
+		-0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   4.0f, 0.0f,
+		0.0f,  0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   2.0f, 4.0f,
+
+		-0.5f, -0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,
+		0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   4.0f, 0.0f,
+		0.0f, -0.5f, -0.5f,   0.0f, 0.0f, 1.0f,   2.0f, 4.0f
+
 	};
 
 
@@ -154,7 +167,7 @@ int main()
 		glBindTexture(GL_TEXTURE_2D, texture2);
 		glUniform1i(glGetUniformLocation(ourShaderGrad.Program, "ourTexture2"), 1);
 		
-		glm::mat4 model = glm::rotate(glm::mat4(1.0f), glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+		glm::mat4 model = glm::rotate(glm::mat4(1.0f), (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
 		glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -3.0f));
 		glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
 
@@ -168,7 +181,7 @@ int main()
 		glUniform1f(glGetUniformLocation(ourShaderGrad.Program, "mixValue"), mixValue);
 
 		glBindVertexArray(VAO);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glDrawArrays(GL_TRIANGLES, 0, 12);
 		glBindVertexArray(0);
 
 
