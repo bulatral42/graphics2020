@@ -43,7 +43,7 @@ int main()
 
 	// Window
 	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, 
-		    "TexturedRectangle", nullptr, nullptr);
+		    "WhrillingTetraedr", nullptr, nullptr);
 	if (window == nullptr) {
 		std::cout << "Window creation error" << std::endl;
 		glfwTerminate();
@@ -56,6 +56,8 @@ int main()
 		std::cout << "GLEW init error" << std::endl;
 		return -1;
 	}
+
+	glEnable(GL_DEPTH_TEST);
 
 	int width, height;
 	glfwGetFramebufferSize(window, &width, &height);
@@ -70,15 +72,15 @@ int main()
 	GLfloat vertTriangle[] = {
 		-0.5f, -0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,
 		0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   4.0f, 0.0f,
-		0.0f,  0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   2.0f, 4.0f,
+		0.0f,  0.5f, 0.0f,   0.3f, 0.3f, 0.3f,   2.0f, 4.0f,
 
-		0.5f, -0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,
-		0.0f, -0.5f, -0.5f,   0.0f, 1.0f, 0.0f,   4.0f, 0.0f,
-		0.0f,  0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   2.0f, 4.0f,
+		0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   0.0f, 0.0f,
+		0.0f, -0.5f, -0.5f,   0.0f, 0.0f, 1.0f,   4.0f, 0.0f,
+		0.0f,  0.5f, 0.0f,   0.3f, 0.3f, 0.3f,   2.0f, 4.0f,
 
-		0.0f, -0.5f, -0.5f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,
-		-0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   4.0f, 0.0f,
-		0.0f,  0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   2.0f, 4.0f,
+		0.0f, -0.5f, -0.5f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,
+		-0.5f, -0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   4.0f, 0.0f,
+		0.0f,  0.5f, 0.0f,   0.3f, 0.3f, 0.3f,   2.0f, 4.0f,
 
 		-0.5f, -0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,
 		0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   4.0f, 0.0f,
@@ -154,7 +156,7 @@ int main()
 		glfwPollEvents();
 		// Rendering
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
 		// Draw the first triangle using the data from our first VAO
 		ourShaderGrad.Use();
@@ -167,7 +169,8 @@ int main()
 		glBindTexture(GL_TEXTURE_2D, texture2);
 		glUniform1i(glGetUniformLocation(ourShaderGrad.Program, "ourTexture2"), 1);
 		
-		glm::mat4 model = glm::rotate(glm::mat4(1.0f), (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
+		glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(1.5f, 1.5f, 1.5f));
+		model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
 		glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -3.0f));
 		glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
 
