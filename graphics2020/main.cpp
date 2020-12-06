@@ -154,12 +154,16 @@ int main()
 		glBindTexture(GL_TEXTURE_2D, texture2);
 		glUniform1i(glGetUniformLocation(ourShaderGrad.Program, "ourTexture2"), 1);
 		
-		glm::mat4 trans(1.0f);
-		trans = glm::translate(trans, glm::vec3(0.3f, 0.3f, 0.0f));
-		trans = glm::scale(trans, glm::vec3(0.8f, 0.5f, 1.0f));
-		trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
-		GLuint transLoc = glGetUniformLocation(ourShaderGrad.Program, "transform");
-		glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(trans));
+		glm::mat4 model = glm::rotate(glm::mat4(1.0f), glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+		glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -3.0f));
+		glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
+
+		GLuint transLoc = glGetUniformLocation(ourShaderGrad.Program, "model");
+		glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(model));
+		transLoc = glGetUniformLocation(ourShaderGrad.Program, "view");
+		glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(view));
+		transLoc = glGetUniformLocation(ourShaderGrad.Program, "projection");
+		glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
 		glUniform1f(glGetUniformLocation(ourShaderGrad.Program, "mixValue"), mixValue);
 
@@ -170,7 +174,7 @@ int main()
 
 
 
-
+		/*
 		// Draw the first triangle using the data from our first VAO
 		ourShaderGrad.Use();
 
@@ -195,7 +199,7 @@ int main()
 		glBindVertexArray(VAO);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 		glBindVertexArray(0);
-
+		*/
 
 
 
