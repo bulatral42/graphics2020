@@ -4,6 +4,9 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <SOIL/SOIL.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include "Shaders/shader.h"
 
 
@@ -61,7 +64,7 @@ int main()
 	glfwSetKeyCallback(window, key_callback);
 
 	// Shaders
-	Shader ourShaderGrad("../LibStuff/Include/Shaders/src/vshader1.vsh", "../LibStuff/Include/Shaders/src/fshader1.frag");
+	Shader ourShaderGrad("../LibStuff/Include/Shaders/src/vshader1.vsh", "../LibStuff/Include/Shaders/src/fshader1.fsh");
 
 	// Vertices
 	GLfloat vertTriangle[] = {
@@ -130,6 +133,7 @@ int main()
 	SOIL_free_image_data(image);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
+
 	// Run
 	// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	// glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -150,11 +154,50 @@ int main()
 		glBindTexture(GL_TEXTURE_2D, texture2);
 		glUniform1i(glGetUniformLocation(ourShaderGrad.Program, "ourTexture2"), 1);
 		
+		glm::mat4 trans(1.0f);
+		trans = glm::translate(trans, glm::vec3(0.3f, 0.3f, 0.0f));
+		trans = glm::scale(trans, glm::vec3(0.8f, 0.5f, 1.0f));
+		trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+		GLuint transLoc = glGetUniformLocation(ourShaderGrad.Program, "transform");
+		glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(trans));
+
 		glUniform1f(glGetUniformLocation(ourShaderGrad.Program, "mixValue"), mixValue);
 
 		glBindVertexArray(VAO);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 		glBindVertexArray(0);
+
+
+
+
+
+		// Draw the first triangle using the data from our first VAO
+		ourShaderGrad.Use();
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture1);
+		glUniform1i(glGetUniformLocation(ourShaderGrad.Program, "ourTexture1"), 0);
+
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, texture2);
+		glUniform1i(glGetUniformLocation(ourShaderGrad.Program, "ourTexture2"), 1);
+
+		trans = glm::mat4(1.0f);
+		GLfloat curTime = glfwGetTime();
+		trans = glm::translate(trans, glm::vec3(-0.5f, -0.5f, 0.0f));
+		trans = glm::scale(trans, glm::vec3(0.7f + 0.3f * sin(4 * curTime), 0.7f + 0.3f * cos(4 * curTime), 1.0f));
+		//trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+		transLoc = glGetUniformLocation(ourShaderGrad.Program, "transform");
+		glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(trans));
+
+		glUniform1f(glGetUniformLocation(ourShaderGrad.Program, "mixValue"), mixValue);
+
+		glBindVertexArray(VAO);
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glBindVertexArray(0);
+
+
+
 
 		glfwSwapBuffers(window);
 	}
@@ -162,5 +205,6 @@ int main()
 	glDeleteVertexArrays(1, &VAO);
 	glDeleteBuffers(1, &VBO);
 	glfwTerminate();
+	
 	return 0;
 }
