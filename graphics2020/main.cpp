@@ -33,7 +33,13 @@ void processInput(GLFWwindow* window)
 		glfwSetWindowShouldClose(window, true);
 	}
 
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+		mixValue += deltaTime;
+		mixValue = mixValue >= 1.0f ? 1.0f : mixValue;
+	} else if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+		mixValue -= deltaTime;
+		mixValue = mixValue <= 0.0f ? 0.0f : mixValue;
+	} else if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
 		camera.ProcessKeyboard(Camera_Movement::FORWARD, deltaTime);
 	} else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
 		camera.ProcessKeyboard(Camera_Movement::BACKWARD, deltaTime);
