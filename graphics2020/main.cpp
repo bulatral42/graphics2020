@@ -182,11 +182,11 @@ int main()
 		glUniform1i(glGetUniformLocation(ourShaderGrad.Program, "ourTexture2"), 1);
 		
 		for (size_t i = 0; i < 10; ++i) {
-			glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(0.5f, 0.5f, 0.5f));
+			glm::mat4 model = glm::translate(glm::mat4(1.0f), uniquePositions[i]); 
 			GLfloat angle = (GLfloat)glfwGetTime() * glm::radians(50.0f) + 20.0f * i;
-			model = glm::rotate(model, angle, glm::vec3(0.5f, 1.0f, 0.0f));
-			model = glm::translate(model, uniquePositions[i]); 
-			glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -3.0f));
+			model = glm::rotate(model, angle, glm::vec3(0.5f, 0.5f, 0.0f));
+			model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.5f));
+			glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -5.0f));
 			glm::mat4 projection = glm::perspective(glm::radians(45.0f), (GLfloat)WIDTH / (GLfloat)HEIGHT, 0.1f, 100.0f);
 
 			GLuint transLoc = glGetUniformLocation(ourShaderGrad.Program, "model");
@@ -238,5 +238,14 @@ int main()
 	glDeleteBuffers(1, &VBO);
 	glfwTerminate();
 	
+
+/*	glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(2.0f, 2.0f, 1.0f));
+	model = glm::translate(model, glm::vec3(1.0f, -1.0f, 0.0f));
+	//model = glm::rotate(model, glm::radians(45.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+	glm::vec4 v(1.0f, 1.0f, 1.0f, 1.0f);
+	v = model * v;
+	std::cout << v.x << " " << v.y << " " << v.z << " " << v.w << std::endl;
+	*/
+
 	return 0;
 }
