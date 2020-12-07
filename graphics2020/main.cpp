@@ -180,14 +180,25 @@ int main()
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, texture2);
 		glUniform1i(glGetUniformLocation(ourShaderGrad.Program, "ourTexture2"), 1);
-		
+
+		const GLfloat RADIUS = 7.0f;
+
 		for (size_t i = 0; i < 10; ++i) {
-			glm::mat4 model = glm::translate(glm::mat4(1.0f), uniquePositions[i]); 
-			GLfloat angle = (GLfloat)glfwGetTime() * glm::radians(50.0f) + 20.0f * i;
-			model = glm::rotate(model, angle, glm::vec3(0.5f, 0.5f, 0.0f));
+			GLfloat curTime = (GLfloat)glfwGetTime();
+			
+			glm::mat4 model = glm::translate(glm::mat4(1.0f), uniquePositions[i]);
+			GLfloat angle = curTime * glm::radians(50.0f) + 20.0f * i;
+			//model = glm::rotate(model, angle, glm::vec3(0.5f, 0.5f, 0.0f));
 			model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.5f));
-			glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -5.0f));
+
+			glm::vec3 cameraPos(RADIUS * sin(curTime), RADIUS / 4 * cos(curTime / 2), RADIUS * cos(curTime));
+			glm::vec3 cameraTarget(0.0f, 0.0f, 0.0f);
+			glm::vec3 up(0.0f, 1.0f, 0.0f);
+			glm::mat4 view = glm::lookAt(cameraPos, cameraTarget, up);
+			//glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -5.0f));
+			//glm::mat4 view = gl::lookAt(glm::vec3())
 			glm::mat4 projection = glm::perspective(glm::radians(45.0f), (GLfloat)WIDTH / (GLfloat)HEIGHT, 0.1f, 100.0f);
+
 
 			GLuint transLoc = glGetUniformLocation(ourShaderGrad.Program, "model");
 			glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(model));
