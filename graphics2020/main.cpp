@@ -7,31 +7,64 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include "Shaders/shader.h"
-
-
-GLfloat mixValue = 0.2f;
-
-
-void key_callback(GLFWwindow* window, int key,
-	int scancode, int action, int mode) {
-	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-		glfwSetWindowShouldClose(window, GL_TRUE);
-	} else if (key == GLFW_KEY_UP && action == GLFW_PRESS) {
-		mixValue += 0.1f;
-		mixValue = mixValue >= 1.0f ? 1.0f : mixValue;
-	} else if (key == GLFW_KEY_DOWN && action == GLFW_PRESS) {
-		mixValue -= 0.1f;
-		mixValue = mixValue <= 0.0f ? 0.0f : mixValue;
-	}
-}
+#include <Shaders/shader.h>
+#include <camera.h>
 
 
 // Window dimensions
-const GLuint WIDTH = 1400, HEIGHT = 700;
+const GLuint WIDTH = 1400, HEIGHT = 800;
+
+GLfloat mixValue = 0.2f;
+glm::vec3 cameraPos(0.0f, 0.0f, 3.0f);
+glm::vec3 cameraFront(0.0f, 0.0f, -1.0f);
+glm::vec3 cameraUp(0.0f, 1.0f, 0.0f);
+GLfloat deltaTime = 0.0f;
+GLfloat lastTime = 0.0f;
+
+Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+float lastX = WIDTH / 2.0f;
+float lastY = HEIGHT / 2.0f;
+bool firstMouse = true;
 
 
+void processInput(GLFWwindow* window)
+{
+	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+		glfwSetWindowShouldClose(window, true);
+	}
 
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+		camera.ProcessKeyboard(Camera_Movement::FORWARD, deltaTime);
+	} else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+		camera.ProcessKeyboard(Camera_Movement::BACKWARD, deltaTime);
+	} else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+		camera.ProcessKeyboard(Camera_Movement::LEFT, deltaTime);
+	} else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+		camera.ProcessKeyboard(Camera_Movement::RIGHT, deltaTime);
+	}
+}
+
+void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+{
+	if (firstMouse) {
+		lastX = xpos;
+		lastY = ypos;
+		firstMouse = false;
+	}
+
+	float xoffset = xpos - lastX;
+	float yoffset = lastY - ypos; // y-координаты снизу вверх
+
+	lastX = xpos;
+	lastY = ypos;
+
+	camera.ProcessMouseMovement(xoffset, yoffset);
+}
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+	camera.ProcessMouseScroll(yoffset);
+}
 
 int main()
 {
@@ -57,13 +90,15 @@ int main()
 		return -1;
 	}
 
+	glfwSetCursorPosCallback(window, mouse_callback);
+	glfwSetScrollCallback(window, scroll_callback);
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	
 	glEnable(GL_DEPTH_TEST);
 
 	int width, height;
 	glfwGetFramebufferSize(window, &width, &height);
 	glViewport(0, 0, width, height);
-
-	glfwSetKeyCallback(window, key_callback);
 
 	// Shaders
 	Shader ourShaderGrad("../LibStuff/Include/Shaders/src/vshader1.vsh", "../LibStuff/Include/Shaders/src/fshader1.fsh");
@@ -165,12 +200,15 @@ int main()
 	// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	// glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	while (!glfwWindowShouldClose(window)) {
-		glfwPollEvents();
+		GLfloat curTime = (GLfloat)glfwGetTime();
+		deltaTime = curTime - lastTime;
+		lastTime = curTime;
+
+		processInput(window); 
 		// Rendering
-		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+		glClearColor(0.8f, 0.1f, 0.6f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
-		// Draw the first triangle using the data from our first VAO
 		ourShaderGrad.Use();
 		
 		glActiveTexture(GL_TEXTURE0);
@@ -181,82 +219,37 @@ int main()
 		glBindTexture(GL_TEXTURE_2D, texture2);
 		glUniform1i(glGetUniformLocation(ourShaderGrad.Program, "ourTexture2"), 1);
 
-		const GLfloat RADIUS = 7.0f;
+		glm::mat4 view = camera.GetViewMatrix();
+		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (GLfloat)WIDTH / (GLfloat)HEIGHT, 0.1f, 100.0f);
+
+		GLuint transLoc = glGetUniformLocation(ourShaderGrad.Program, "view");
+		glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(view));
+		transLoc = glGetUniformLocation(ourShaderGrad.Program, "projection");
+		glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(projection));
+
+		glUniform1f(glGetUniformLocation(ourShaderGrad.Program, "mixValue"), mixValue);
 
 		for (size_t i = 0; i < 10; ++i) {
-			GLfloat curTime = (GLfloat)glfwGetTime();
-			
 			glm::mat4 model = glm::translate(glm::mat4(1.0f), uniquePositions[i]);
 			GLfloat angle = curTime * glm::radians(50.0f) + 20.0f * i;
-			//model = glm::rotate(model, angle, glm::vec3(0.5f, 0.5f, 0.0f));
-			model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.5f));
+			model = glm::rotate(model, angle, glm::vec3(0.5f, 0.5f, 0.0f));
+			model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.5f));			
 
-			glm::vec3 cameraPos(RADIUS * sin(curTime), RADIUS / 4 * cos(curTime / 2), RADIUS * cos(curTime));
-			glm::vec3 cameraTarget(0.0f, 0.0f, 0.0f);
-			glm::vec3 up(0.0f, 1.0f, 0.0f);
-			glm::mat4 view = glm::lookAt(cameraPos, cameraTarget, up);
-			//glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -5.0f));
-			//glm::mat4 view = gl::lookAt(glm::vec3())
-			glm::mat4 projection = glm::perspective(glm::radians(45.0f), (GLfloat)WIDTH / (GLfloat)HEIGHT, 0.1f, 100.0f);
-
-
-			GLuint transLoc = glGetUniformLocation(ourShaderGrad.Program, "model");
+			transLoc = glGetUniformLocation(ourShaderGrad.Program, "model");
 			glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(model));
-			transLoc = glGetUniformLocation(ourShaderGrad.Program, "view");
-			glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(view));
-			transLoc = glGetUniformLocation(ourShaderGrad.Program, "projection");
-			glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(projection));
-			glUniform1f(glGetUniformLocation(ourShaderGrad.Program, "mixValue"), mixValue);
+			
 
 			glBindVertexArray(VAO);
 			glDrawArrays(GL_TRIANGLES, 0, 12);
 			glBindVertexArray(0);
 		}
-
-		/*
-		// Draw the first triangle using the data from our first VAO
-		ourShaderGrad.Use();
-
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture1);
-		glUniform1i(glGetUniformLocation(ourShaderGrad.Program, "ourTexture1"), 0);
-
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, texture2);
-		glUniform1i(glGetUniformLocation(ourShaderGrad.Program, "ourTexture2"), 1);
-
-		trans = glm::mat4(1.0f);
-		GLfloat curTime = glfwGetTime();
-		trans = glm::translate(trans, glm::vec3(-0.5f, -0.5f, 0.0f));
-		trans = glm::scale(trans, glm::vec3(0.7f + 0.3f * sin(4 * curTime), 0.7f + 0.3f * cos(4 * curTime), 1.0f));
-		//trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
-		transLoc = glGetUniformLocation(ourShaderGrad.Program, "transform");
-		glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(trans));
-
-		glUniform1f(glGetUniformLocation(ourShaderGrad.Program, "mixValue"), mixValue);
-
-		glBindVertexArray(VAO);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
-		glBindVertexArray(0);
-		*/
-
-
-
 		glfwSwapBuffers(window);
+		glfwPollEvents();
 	}
 
 	glDeleteVertexArrays(1, &VAO);
 	glDeleteBuffers(1, &VBO);
 	glfwTerminate();
-	
-
-/*	glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(2.0f, 2.0f, 1.0f));
-	model = glm::translate(model, glm::vec3(1.0f, -1.0f, 0.0f));
-	//model = glm::rotate(model, glm::radians(45.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-	glm::vec4 v(1.0f, 1.0f, 1.0f, 1.0f);
-	v = model * v;
-	std::cout << v.x << " " << v.y << " " << v.z << " " << v.w << std::endl;
-	*/
 
 	return 0;
 }
