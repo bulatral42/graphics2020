@@ -26,6 +26,7 @@ float lastX = WIDTH / 2.0f;
 float lastY = HEIGHT / 2.0f;
 bool firstMouse = true;
 
+glm::vec3 lightPos(1.5f, 1.0f, 2.0f);
 
 void processInput(GLFWwindow* window)
 {
@@ -107,7 +108,8 @@ int main()
 	glViewport(0, 0, width, height);
 
 	// Shaders
-	Shader ourShaderGrad("../LibStuff/Include/Shaders/src/vshader1.vsh", "../LibStuff/Include/Shaders/src/fshader1.fsh");
+	Shader objectShader("../LibStuff/Include/Shaders/src/vshader2.vsh", "../LibStuff/Include/Shaders/src/fshader2.fsh");
+	Shader lightShader("../LibStuff/Include/Shaders/src/vlight1.vsh", "../LibStuff/Include/Shaders/src/flight1.fsh");
 
 	// Vertices
 	GLfloat vertTriangle[] = {
@@ -129,17 +131,15 @@ int main()
 
 	};
 
-
-	GLuint VBO, VAO;
+	GLuint VBO[2], VAO;
 	glGenVertexArrays(1, &VAO);
-	glGenBuffers(1, &VBO);
+	glGenBuffers(2, VBO);
 
-	glBindVertexArray(VAO);
-
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertTriangle),
 		vertTriangle, GL_STATIC_DRAW);
-
+	
+	glBindVertexArray(VAO);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 
             8 * sizeof(GLfloat), (GLvoid*)0);
 	glEnableVertexAttribArray(0);
@@ -152,6 +152,64 @@ int main()
 	glBindVertexArray(0);
 
 
+	GLfloat vertCube[] = {
+		-0.5f, -0.5f, -0.5f,
+		 0.5f, -0.5f, -0.5f,
+		 0.5f,  0.5f, -0.5f,
+		 0.5f,  0.5f, -0.5f,
+		-0.5f,  0.5f, -0.5f,
+		-0.5f, -0.5f, -0.5f,
+
+		-0.5f, -0.5f,  0.5f,
+		 0.5f, -0.5f,  0.5f,
+		 0.5f,  0.5f,  0.5f,
+		 0.5f,  0.5f,  0.5f,
+		-0.5f,  0.5f,  0.5f,
+		-0.5f, -0.5f,  0.5f,
+
+		-0.5f,  0.5f,  0.5f,
+		-0.5f,  0.5f, -0.5f,
+		-0.5f, -0.5f, -0.5f,
+		-0.5f, -0.5f, -0.5f,
+		-0.5f, -0.5f,  0.5f,
+		-0.5f,  0.5f,  0.5f,
+
+		 0.5f,  0.5f,  0.5f,
+		 0.5f,  0.5f, -0.5f,
+		 0.5f, -0.5f, -0.5f,
+		 0.5f, -0.5f, -0.5f,
+		 0.5f, -0.5f,  0.5f,
+		 0.5f,  0.5f,  0.5f,
+
+		-0.5f, -0.5f, -0.5f,
+		 0.5f, -0.5f, -0.5f,
+		 0.5f, -0.5f,  0.5f,
+		 0.5f, -0.5f,  0.5f,
+		-0.5f, -0.5f,  0.5f,
+		-0.5f, -0.5f, -0.5f,
+
+		-0.5f,  0.5f, -0.5f,
+		 0.5f,  0.5f, -0.5f,
+		 0.5f,  0.5f,  0.5f,
+		 0.5f,  0.5f,  0.5f,
+		-0.5f,  0.5f,  0.5f,
+		-0.5f,  0.5f, -0.5f,
+	};
+
+	GLuint lightVAO;
+
+	glGenVertexArrays(1, &lightVAO);
+	glGenBuffers(1, &VBO[1]);
+
+	glBindBuffer(GL_ARRAY_BUFFER, VBO[1]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertCube), vertCube, GL_STATIC_DRAW);
+
+	glBindVertexArray(lightVAO);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (void*)0);
+	glEnableVertexAttribArray(0);
+
+
 	GLuint texture1, texture2;
 	glGenTextures(1, &texture1);
 	glBindTexture(GL_TEXTURE_2D, texture1);
@@ -161,7 +219,7 @@ int main()
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
+	
 	int textWidth, textHeight;
 	unsigned char* image = SOIL_load_image("container.jpg", &textWidth, &textHeight, 0, SOIL_LOAD_RGB);
 
@@ -202,6 +260,10 @@ int main()
         glm::vec3(-1.3f,  1.0f, -1.5f)
 	};
 
+	glm::vec3 lightColorWhite(1.0f, 1.0f, 1.0f);
+	glm::vec3 lightColorRed(1.0f, 0.0f, 0.0f);
+	glm::vec3 lightColorGreen(0.0f, 1.0f, 0.0f);
+	glm::vec3 lightColorBlue(0.0f, 0.0f, 1.0f);
 	// Run
 	// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	// glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -215,46 +277,67 @@ int main()
 		glClearColor(0.8f, 0.1f, 0.6f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
-		ourShaderGrad.Use();
+		objectShader.Use();
 		
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture1);
-		glUniform1i(glGetUniformLocation(ourShaderGrad.Program, "ourTexture1"), 0);
+		glUniform1i(glGetUniformLocation(objectShader.Program, "ourTexture1"), 0);
 
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, texture2);
-		glUniform1i(glGetUniformLocation(ourShaderGrad.Program, "ourTexture2"), 1);
+		glUniform1i(glGetUniformLocation(objectShader.Program, "ourTexture2"), 1);
 
 		glm::mat4 view = camera.GetViewMatrix();
 		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (GLfloat)WIDTH / (GLfloat)HEIGHT, 0.1f, 100.0f);
 
-		GLuint transLoc = glGetUniformLocation(ourShaderGrad.Program, "view");
+		GLuint transLoc = glGetUniformLocation(objectShader.Program, "view");
 		glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(view));
-		transLoc = glGetUniformLocation(ourShaderGrad.Program, "projection");
+		transLoc = glGetUniformLocation(objectShader.Program, "projection");
 		glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
-		glUniform1f(glGetUniformLocation(ourShaderGrad.Program, "mixValue"), mixValue);
+		glUniform1f(glGetUniformLocation(objectShader.Program, "mixValue"), mixValue);
+		glUniform3fv(glGetUniformLocation(objectShader.Program, "lightColor"), 1, &lightColorWhite[0]);
+
+		glm::mat4 model(1.0f);
 
 		for (size_t i = 0; i < 10; ++i) {
-			glm::mat4 model = glm::translate(glm::mat4(1.0f), uniquePositions[i]);
+			model = glm::translate(glm::mat4(1.0f), uniquePositions[i]);
 			GLfloat angle = curTime * glm::radians(50.0f) + 20.0f * i;
 			model = glm::rotate(model, angle, glm::vec3(0.5f, 0.5f, 0.0f));
 			model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.5f));			
 
-			transLoc = glGetUniformLocation(ourShaderGrad.Program, "model");
+			transLoc = glGetUniformLocation(objectShader.Program, "model");
 			glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(model));
-			
 
 			glBindVertexArray(VAO);
 			glDrawArrays(GL_TRIANGLES, 0, 12);
 			glBindVertexArray(0);
 		}
+
+		lightShader.Use();
+		model = glm::translate(glm::mat4(1.0f), lightPos);
+		model = glm::scale(model, glm::vec3(0.2f));
+		//view = glm::mat4(1.0f);
+		//projection = glm::mat4(1.0f);
+
+		transLoc = glGetUniformLocation(lightShader.Program, "view");
+		glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(view));
+		transLoc = glGetUniformLocation(lightShader.Program, "projection");
+		glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(projection));
+		transLoc = glGetUniformLocation(lightShader.Program, "model");
+		glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(model));
+
+
+		glBindVertexArray(lightVAO);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
 
+	glDeleteVertexArrays(1, &lightVAO);
 	glDeleteVertexArrays(1, &VAO);
-	glDeleteBuffers(1, &VBO);
+	glDeleteBuffers(2, VBO);
 	glfwTerminate();
 
 	return 0;
