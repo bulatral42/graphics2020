@@ -39,50 +39,10 @@ struct Material {
 	float shininess;
 };
 
-void processInput(GLFWwindow* window)
-{
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-		glfwSetWindowShouldClose(window, true);
-	}
+void processInput(GLFWwindow* window);
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
-	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
-		mixValue += deltaTime;
-		mixValue = mixValue >= 1.0f ? 1.0f : mixValue;
-	} else if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-		mixValue -= deltaTime;
-		mixValue = mixValue <= 0.0f ? 0.0f : mixValue;
-	} else if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-		camera.ProcessKeyboard(Camera_Movement::FORWARD, deltaTime);
-	} else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-		camera.ProcessKeyboard(Camera_Movement::BACKWARD, deltaTime);
-	} else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-		camera.ProcessKeyboard(Camera_Movement::LEFT, deltaTime);
-	} else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-		camera.ProcessKeyboard(Camera_Movement::RIGHT, deltaTime);
-	}
-}
-
-void mouse_callback(GLFWwindow* window, double xpos, double ypos)
-{
-	if (firstMouse) {
-		lastX = xpos;
-		lastY = ypos;
-		firstMouse = false;
-	}
-
-	float xoffset = xpos - lastX;
-	float yoffset = lastY - ypos; // y-координаты снизу вверх
-
-	lastX = xpos;
-	lastY = ypos;
-
-	camera.ProcessMouseMovement(xoffset, yoffset);
-}
-
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
-{
-	camera.ProcessMouseScroll(yoffset);
-}
 
 int main()
 {
@@ -304,10 +264,8 @@ int main()
 		glm::mat4 view = camera.GetViewMatrix();
 		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (GLfloat)WIDTH / (GLfloat)HEIGHT, 0.1f, 100.0f);
 
-		GLuint transLoc = glGetUniformLocation(objectShader.Program, "view");
-		glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(view));
-		transLoc = glGetUniformLocation(objectShader.Program, "projection");
-		glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(projection));
+		glUniformMatrix4fv(glGetUniformLocation(objectShader.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
+		glUniformMatrix4fv(glGetUniformLocation(objectShader.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
 		glUniform1f(glGetUniformLocation(objectShader.Program, "mixValue"), mixValue);
 		glUniform3fv(glGetUniformLocation(objectShader.Program, "lightColor"), 1, &lightColorWhite[0]);
@@ -341,8 +299,7 @@ int main()
 			model = glm::rotate(model, angle, glm::vec3(0.5f, 0.5f, 0.0f));
 			model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.5f));			
 
-			transLoc = glGetUniformLocation(objectShader.Program, "model");
-			glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(model));
+			glUniformMatrix4fv(glGetUniformLocation(objectShader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
 
 			glBindVertexArray(VAO);
 			glDrawArrays(GL_TRIANGLES, 0, 12);
@@ -352,15 +309,10 @@ int main()
 		lightShader.Use();
 		model = glm::translate(glm::mat4(1.0f), lightPos);
 		model = glm::scale(model, glm::vec3(0.2f));
-		//view = glm::mat4(1.0f);
-		//projection = glm::mat4(1.0f);
 
-		transLoc = glGetUniformLocation(lightShader.Program, "view");
-		glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(view));
-		transLoc = glGetUniformLocation(lightShader.Program, "projection");
-		glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(projection));
-		transLoc = glGetUniformLocation(lightShader.Program, "model");
-		glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(model));
+		glUniformMatrix4fv(glGetUniformLocation(lightShader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+		glUniformMatrix4fv(glGetUniformLocation(lightShader.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
+		glUniformMatrix4fv(glGetUniformLocation(lightShader.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
 		glUniform3fv(glGetUniformLocation(lightShader.Program, "lightColor"), 1, &lightColor[0]);
 
@@ -377,4 +329,54 @@ int main()
 	glfwTerminate();
 
 	return 0;
+}
+
+void processInput(GLFWwindow* window)
+{
+	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+		glfwSetWindowShouldClose(window, true);
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+		mixValue += deltaTime;
+		mixValue = mixValue >= 1.0f ? 1.0f : mixValue;
+	}
+	else if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+		mixValue -= deltaTime;
+		mixValue = mixValue <= 0.0f ? 0.0f : mixValue;
+	}
+	else if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+		camera.ProcessKeyboard(Camera_Movement::FORWARD, deltaTime);
+	}
+	else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+		camera.ProcessKeyboard(Camera_Movement::BACKWARD, deltaTime);
+	}
+	else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+		camera.ProcessKeyboard(Camera_Movement::LEFT, deltaTime);
+	}
+	else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+		camera.ProcessKeyboard(Camera_Movement::RIGHT, deltaTime);
+	}
+}
+
+void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+{
+	if (firstMouse) {
+		lastX = xpos;
+		lastY = ypos;
+		firstMouse = false;
+	}
+
+	float xoffset = xpos - lastX;
+	float yoffset = lastY - ypos; // y-координаты снизу вверх
+
+	lastX = xpos;
+	lastY = ypos;
+
+	camera.ProcessMouseMovement(xoffset, yoffset);
+}
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+	camera.ProcessMouseScroll(yoffset);
 }
