@@ -27,6 +27,11 @@ float lastY = HEIGHT / 2.0f;
 bool firstMouse = true;
 
 glm::vec3 lightPos(1.5f, 1.0f, 2.0f);
+glm::vec3 lightColorWhite(1.0f, 1.0f, 1.0f);
+glm::vec3 lightColorRed(1.0f, 0.0f, 0.0f);
+glm::vec3 lightColorGreen(0.0f, 1.0f, 0.0f);
+glm::vec3 lightColorBlue(0.0f, 0.0f, 1.0f);
+
 
 void processInput(GLFWwindow* window)
 {
@@ -108,27 +113,26 @@ int main()
 	glViewport(0, 0, width, height);
 
 	// Shaders
-	Shader objectShader("../LibStuff/Include/Shaders/src/vshader2.vsh", "../LibStuff/Include/Shaders/src/fshader2.fsh");
+	Shader objectShader("../LibStuff/Include/Shaders/src/vshader3.vsh", "../LibStuff/Include/Shaders/src/fshader3.fsh");
 	Shader lightShader("../LibStuff/Include/Shaders/src/vlight1.vsh", "../LibStuff/Include/Shaders/src/flight1.fsh");
 
 	// Vertices
 	GLfloat vertTriangle[] = {
-		-0.5f, -0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,
-		0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   4.0f, 0.0f,
-		0.0f,  0.5f, 0.0f,   0.3f, 0.3f, 0.3f,   2.0f, 4.0f,
+		-0.5f, -0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,  0.0f, 0.0f, 1.0f,
+		0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   4.0f, 0.0f,  0.0f, 0.0f, 1.0f,
+		0.0f,  0.5f, 0.0f,   0.3f, 0.3f, 0.3f,   2.0f, 4.0f,  0.0f, 0.0f, 1.0f,
 
-		0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   0.0f, 0.0f,
-		0.0f, -0.5f, -0.5f,   0.0f, 0.0f, 1.0f,   4.0f, 0.0f,
-		0.0f,  0.5f, 0.0f,   0.3f, 0.3f, 0.3f,   2.0f, 4.0f,
+		0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   0.0f, 0.0f,   0.66f, 0.34f, -0.66f, 
+		0.0f, -0.5f, -0.5f,   0.0f, 0.0f, 1.0f,   4.0f, 0.0f,  0.66f, 0.34f, -0.66f,
+		0.0f,  0.5f, 0.0f,   0.3f, 0.3f, 0.3f,   2.0f, 4.0f,  0.66f, 0.34f, -0.66f,
 
-		0.0f, -0.5f, -0.5f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,
-		-0.5f, -0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   4.0f, 0.0f,
-		0.0f,  0.5f, 0.0f,   0.3f, 0.3f, 0.3f,   2.0f, 4.0f,
+		0.0f, -0.5f, -0.5f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,  -0.66f, 0.34f, -0.66f,
+		-0.5f, -0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   4.0f, 0.0f,  -0.66f, 0.34f, -0.66f,
+		0.0f,  0.5f, 0.0f,   0.3f, 0.3f, 0.3f,   2.0f, 4.0f,  -0.66f, 0.34f, -0.66f,
 
-		-0.5f, -0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,
-		0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   4.0f, 0.0f,
-		0.0f, -0.5f, -0.5f,   0.0f, 0.0f, 1.0f,   2.0f, 4.0f
-
+		-0.5f, -0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,  0.0f, 1.0f, 0.0f,
+		0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   4.0f, 0.0f,  0.0f, 1.0f, 0.0f,
+		0.0f, -0.5f, -0.5f,   0.0f, 0.0f, 1.0f,   2.0f, 4.0f,  0.0f, 1.0f, 0.0f
 	};
 
 	GLuint VBO[2], VAO;
@@ -141,14 +145,17 @@ int main()
 	
 	glBindVertexArray(VAO);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 
-            8 * sizeof(GLfloat), (GLvoid*)0);
+            11 * sizeof(GLfloat), (GLvoid*)0);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE,
-		    8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+		    11 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE,
-		    8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
+		    11 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
 	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE,
+		11 * sizeof(GLfloat), (GLvoid*)(8 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(3);
 	glBindVertexArray(0);
 
 
@@ -260,10 +267,7 @@ int main()
         glm::vec3(-1.3f,  1.0f, -1.5f)
 	};
 
-	glm::vec3 lightColorWhite(1.0f, 1.0f, 1.0f);
-	glm::vec3 lightColorRed(1.0f, 0.0f, 0.0f);
-	glm::vec3 lightColorGreen(0.0f, 1.0f, 0.0f);
-	glm::vec3 lightColorBlue(0.0f, 0.0f, 1.0f);
+
 	// Run
 	// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	// glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -274,7 +278,8 @@ int main()
 
 		processInput(window); 
 		// Rendering
-		glClearColor(0.8f, 0.1f, 0.6f, 1.0f);
+		//glClearColor(0.8f, 0.1f, 0.6f, 1.0f);
+		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
 		objectShader.Use();
@@ -297,12 +302,14 @@ int main()
 
 		glUniform1f(glGetUniformLocation(objectShader.Program, "mixValue"), mixValue);
 		glUniform3fv(glGetUniformLocation(objectShader.Program, "lightColor"), 1, &lightColorWhite[0]);
+		glUniform3fv(glGetUniformLocation(objectShader.Program, "lightPos"), 1, &lightPos[0]);
+		glUniform3fv(glGetUniformLocation(objectShader.Program, "viewPos"), 1, &camera.Position[0]);
 
 		glm::mat4 model(1.0f);
 
 		for (size_t i = 0; i < 10; ++i) {
 			model = glm::translate(glm::mat4(1.0f), uniquePositions[i]);
-			GLfloat angle = curTime * glm::radians(50.0f) + 20.0f * i;
+			GLfloat angle = curTime * glm::radians(25.0f) + 20.0f * i;
 			model = glm::rotate(model, angle, glm::vec3(0.5f, 0.5f, 0.0f));
 			model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.5f));			
 
