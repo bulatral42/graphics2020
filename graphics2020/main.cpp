@@ -32,6 +32,12 @@ glm::vec3 lightColorRed(1.0f, 0.0f, 0.0f);
 glm::vec3 lightColorGreen(0.0f, 1.0f, 0.0f);
 glm::vec3 lightColorBlue(0.0f, 0.0f, 1.0f);
 
+struct Material {
+	glm::vec3 ambient;
+	glm::vec3 diffuse;
+	glm::vec3 specular;
+	float shininess;
+};
 
 void processInput(GLFWwindow* window)
 {
@@ -267,7 +273,10 @@ int main()
         glm::vec3(-1.3f,  1.0f, -1.5f)
 	};
 
-
+	Material gold{ glm::vec3(0.24725f, 0.1995f, 0.0745),
+				   glm::vec3(0.75164f, 0.60648f, 0.22648f),
+				   glm::vec3(0.628281f, 0.555802f, 0.366065f),
+				   51.2f };
 	// Run
 	// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	// glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -279,7 +288,7 @@ int main()
 		processInput(window); 
 		// Rendering
 		//glClearColor(0.8f, 0.1f, 0.6f, 1.0f);
-		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+		glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
 		objectShader.Use();
@@ -305,6 +314,25 @@ int main()
 		glUniform3fv(glGetUniformLocation(objectShader.Program, "lightPos"), 1, &lightPos[0]);
 		glUniform3fv(glGetUniformLocation(objectShader.Program, "viewPos"), 1, &camera.Position[0]);
 
+		glUniform3fv(glGetUniformLocation(objectShader.Program, "material.ambient"), 1, &gold.ambient[0]);
+		glUniform3fv(glGetUniformLocation(objectShader.Program, "material.diffuse"), 1, &gold.diffuse[0]);
+		glUniform3fv(glGetUniformLocation(objectShader.Program, "material.specular"), 1, &gold.specular[0]);
+		glUniform1f(glGetUniformLocation(objectShader.Program, "material.shininess"), gold.shininess);
+		
+		glm::vec3 lightColor;
+		lightColor.x = 0.8f + 0.2f * sin(curTime * 1.0f);
+		lightColor.y = 0.8f + 0.2f * sin(curTime * 0.5f);
+		lightColor.z = 0.8f + 0.2f * sin(curTime * 1.5f);
+		//lightColor = glm::vec3(1.0f);
+		glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
+		glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f);
+		glm::vec3 specularColor = glm::vec3(1.0f);
+
+		glUniform3fv(glGetUniformLocation(objectShader.Program, "light.ambient"), 1, &ambientColor[0]);
+		glUniform3fv(glGetUniformLocation(objectShader.Program, "light.diffuse"), 1, &diffuseColor[0]);
+		glUniform3fv(glGetUniformLocation(objectShader.Program, "light.specular"), 1, &specularColor[0]);
+		glUniform3fv(glGetUniformLocation(objectShader.Program, "light.position"), 1, &lightPos[0]); 
+		
 		glm::mat4 model(1.0f);
 
 		for (size_t i = 0; i < 10; ++i) {
@@ -334,6 +362,7 @@ int main()
 		transLoc = glGetUniformLocation(lightShader.Program, "model");
 		glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(model));
 
+		glUniform3fv(glGetUniformLocation(lightShader.Program, "lightColor"), 1, &lightColor[0]);
 
 		glBindVertexArray(lightVAO);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
