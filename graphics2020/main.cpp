@@ -53,8 +53,7 @@ int main()
 	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
 	// Window
-	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, 
-		    "WhrillingTetraedr", nullptr, nullptr);
+	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Road to Zachet", nullptr, nullptr);
 	if (window == nullptr) {
 		std::cout << "Window creation error" << std::endl;
 		glfwTerminate();
@@ -106,22 +105,22 @@ int main()
 	glGenBuffers(2, VBO);
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertTriangle),
-		vertTriangle, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertTriangle), vertTriangle, GL_STATIC_DRAW);
 	
 	glBindVertexArray(VAO);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 
-            11 * sizeof(GLfloat), (GLvoid*)0);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)0);
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE,
-		    11 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE,
-		    11 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
+
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
 	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE,
-		11 * sizeof(GLfloat), (GLvoid*)(8 * sizeof(GLfloat)));
+
+	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)(8 * sizeof(GLfloat)));
 	glEnableVertexAttribArray(3);
+	
 	glBindVertexArray(0);
 
 
@@ -182,6 +181,8 @@ int main()
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (void*)0);
 	glEnableVertexAttribArray(0);
 
+	glBindVertexArray(0);
+
 
 	GLuint texture1, texture2;
 	glGenTextures(1, &texture1);
@@ -196,12 +197,10 @@ int main()
 	int textWidth, textHeight;
 	unsigned char* image = SOIL_load_image("container.jpg", &textWidth, &textHeight, 0, SOIL_LOAD_RGB);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, textWidth, textHeight,
-	    	0, GL_RGB, GL_UNSIGNED_BYTE, image);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, textWidth, textHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
 	glGenerateMipmap(GL_TEXTURE_2D);
 	SOIL_free_image_data(image);
 	glBindTexture(GL_TEXTURE_2D, 0);
-
 
 	glGenTextures(1, &texture2);
 	glBindTexture(GL_TEXTURE_2D, texture2);
@@ -214,11 +213,11 @@ int main()
 
 	image = SOIL_load_image("awesomeface.png", &textWidth, &textHeight, 0, SOIL_LOAD_RGB);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, textWidth, textHeight,
-		0, GL_RGB, GL_UNSIGNED_BYTE, image);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, textWidth, textHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
 	glGenerateMipmap(GL_TEXTURE_2D);
 	SOIL_free_image_data(image);
 	glBindTexture(GL_TEXTURE_2D, 0);
+
 
 	glm::vec3 uniquePositions[] = {
         glm::vec3(0.0f,  0.0f,  0.0f),
@@ -233,10 +232,13 @@ int main()
         glm::vec3(-1.3f,  1.0f, -1.5f)
 	};
 
+
 	Material gold{ glm::vec3(0.24725f, 0.1995f, 0.0745),
 				   glm::vec3(0.75164f, 0.60648f, 0.22648f),
 				   glm::vec3(0.628281f, 0.555802f, 0.366065f),
 				   51.2f };
+
+
 	// Run
 	// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	// glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
