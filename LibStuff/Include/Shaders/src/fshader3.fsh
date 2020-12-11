@@ -82,14 +82,14 @@ vec3 calcDirLight(DirLight light, vec3 normal, vec3 viewDir)
 
 vec3 calcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
 {
-    float distance = length(light.position - fragPos);
-    float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
-    DirLight asDirLight;
-    asDirLight.direction = fragPos - light.position, 
-    asDirLight.ambient = light.ambient, 
-    asDirLight.diffuse = light.diffuse, 
-    asDirLight.specular = light.specular;
+	float distance = length(light.position - fragPos);
+	float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
+	DirLight asDirLight;
+	asDirLight.direction = fragPos - light.position,
+	asDirLight.ambient = light.ambient,
+	asDirLight.diffuse = light.diffuse,
+	asDirLight.specular = light.specular;
 
-    vec3 tmpLight = calcDirLight(asDirLight, normal, viewDir);
-    return attenuation * tmpLight;
-} 
+	vec3 tmpLight = calcDirLight(asDirLight, normal, viewDir);
+	return attenuation * tmpLight;
+}

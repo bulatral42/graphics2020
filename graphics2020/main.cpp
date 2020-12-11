@@ -78,6 +78,7 @@ int main()
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_STENCIL_TEST);
 
 	int width, height;
 	glfwGetFramebufferSize(window, &width, &height);
@@ -86,6 +87,7 @@ int main()
 	// Shaders
 	Shader objectShader("../LibStuff/Include/Shaders/src/vshader3.vsh", "../LibStuff/Include/Shaders/src/fshader3.fsh");
 	Shader lightShader("../LibStuff/Include/Shaders/src/vlight1.vsh", "../LibStuff/Include/Shaders/src/flight1.fsh");
+	Shader floorShader("../LibStuff/Include/Shaders/src/vfloor.vsh", "../LibStuff/Include/Shaders/src/ffloor.fsh");
 
 	// Vertices
 	GLfloat vertTriangle[] = {
@@ -190,14 +192,46 @@ int main()
 	glBindVertexArray(0);
 
 
-	unsigned int diffuseMap = loadTexture("container_diff.png");
-	unsigned int specularMap = loadTexture("container_spec.png");
-	unsigned int emissionMap = loadTexture("container_emission.jpg");
+	GLfloat vertPlane[] = {
+		 10.0f, -3.0f,  10.0f,  2.0f, 0.0f,  0.0f, 1.0f, 0.0f,
+		-10.0f, -3.0f,  10.0f,  0.0f, 0.0f,  0.0f, 1.0f, 0.0f,
+		-10.0f, -3.0f, -10.0f,  0.0f, 2.0f,  0.0f, 1.0f, 0.0f,
+
+		 10.0f, -3.0f,  10.0f,  2.0f, 0.0f,  0.0f, 1.0f, 0.0f,
+		-10.0f, -3.0f, -10.0f,  0.0f, 2.0f,  0.0f, 1.0f, 0.0f,
+		 10.0f, -3.0f, -10.0f,  2.0f, 2.0f,  0.0f, 1.0f, 0.0f
+	};
+
+	GLuint planeVAO, planeVBO;
+	glGenVertexArrays(1, &planeVAO);
+	glGenBuffers(1, &planeVBO);
+	
+	glBindBuffer(GL_ARRAY_BUFFER, planeVBO); 
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertPlane), &vertPlane, GL_STATIC_DRAW); 
+	
+	glBindVertexArray(planeVAO);
+
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)0);
+	
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
+
+	glEnableVertexAttribArray(3);
+	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)(5 * sizeof(GLfloat)));
+	
+	glBindVertexArray(0);
+
+
+	GLuint diffuseMap = loadTexture("container_diff.png");
+	GLuint specularMap = loadTexture("container_spec.png");
+	GLuint emissionMap = loadTexture("container_emission.jpg");
+	GLuint floorMap = loadTexture("floor_laminate.jpg");
 
 
 	glm::vec3 uniquePositions[] = {
         glm::vec3(0.0f,  0.0f,  0.0f),
-        glm::vec3(2.0f,  5.0f, -15.0f),
+        glm::vec3(2.0f,  5.0f, -9.0f),
         glm::vec3(-1.5f, -2.2f, -2.5f),
         glm::vec3(-3.8f, -2.0f, -12.3f),
         glm::vec3(2.4f, -0.4f, -3.5f),
@@ -232,7 +266,7 @@ int main()
 		processInput(window); 
 		// Rendering
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 		
 		objectShader.Use();
 		
@@ -270,21 +304,21 @@ int main()
 
 		glUniform1f(glGetUniformLocation(objectShader.Program, "curTime"), curTime);
 
-		glm::vec3 lightColor(0.0f);
+		glm::vec3 lightColor(1.0f);
 		glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
 		glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f);
-		glm::vec3 specularColor = glm::vec3(0.0f);
+		glm::vec3 specularColor = lightColor;
 		glUniform3fv(glGetUniformLocation(objectShader.Program, "dirLight.direction"), 1, &sunLightDir[0]);
 		glUniform3fv(glGetUniformLocation(objectShader.Program, "dirLight.ambient"), 1, &ambientColor[0]);
 		glUniform3fv(glGetUniformLocation(objectShader.Program, "dirLight.diffuse"), 1, &diffuseColor[0]);
 		glUniform3fv(glGetUniformLocation(objectShader.Program, "dirLight.specular"), 1, &specularColor[0]);
 
-		lightColor.x = 0.9f + 0.1f * sin(curTime * 1.0f);
+		lightColor.x = 0.8f + 0.2f * sin(curTime * 1.0f);
 		lightColor.y = 0.1f + 0.1f * sin(curTime * 0.5f);
 		lightColor.z = 0.1f + 0.1f * sin(curTime * 1.5f);
 		diffuseColor = lightColor * glm::vec3(0.5f);
 		ambientColor = diffuseColor * glm::vec3(0.2f);
-		specularColor = glm::vec3(1.0f);
+		specularColor = lightColor;
 		glUniform3fv(glGetUniformLocation(objectShader.Program, "pointLights[0].position"), 1, &pointLightsPos[0][0]);
 		glUniform3fv(glGetUniformLocation(objectShader.Program, "pointLights[0].ambient"), 1, &ambientColor[0]);
 		glUniform3fv(glGetUniformLocation(objectShader.Program, "pointLights[0].diffuse"), 1, &diffuseColor[0]);
@@ -294,11 +328,11 @@ int main()
 		glUniform1f(glGetUniformLocation(objectShader.Program, "pointLights[0].quadratic"), 0.032f);
 
 		lightColor.x = 0.1f + 0.1f * sin(curTime * 1.0f);
-		lightColor.y = 0.9f + 0.1f * sin(curTime * 0.5f);
+		lightColor.y = 0.8f + 0.2f * sin(curTime * 0.5f);
 		lightColor.z = 0.1f + 0.1f * sin(curTime * 1.5f);
 		diffuseColor = lightColor * glm::vec3(0.5f);
 		ambientColor = diffuseColor * glm::vec3(0.2f);
-		specularColor = glm::vec3(1.0f);
+		specularColor = lightColor;
 		glUniform3fv(glGetUniformLocation(objectShader.Program, "pointLights[1].position"), 1, &pointLightsPos[1][0]);
 		glUniform3fv(glGetUniformLocation(objectShader.Program, "pointLights[1].ambient"), 1, &ambientColor[0]);
 		glUniform3fv(glGetUniformLocation(objectShader.Program, "pointLights[1].diffuse"), 1, &diffuseColor[0]);
@@ -307,12 +341,12 @@ int main()
 		glUniform1f(glGetUniformLocation(objectShader.Program, "pointLights[1].linear"), 0.09f);
 		glUniform1f(glGetUniformLocation(objectShader.Program, "pointLights[1].quadratic"), 0.032f);
 
-		lightColor.x = 0.1f + 0.1f * sin(curTime * 1.0f);
-		lightColor.y = 0.1f + 0.1f * sin(curTime * 0.5f);
-		lightColor.z = 0.9f + 0.1f * sin(curTime * 1.5f);
+		lightColor.x = 0.2f + 0.2f * sin(curTime * 1.0f);
+		lightColor.y = 0.2f + 0.2f * sin(curTime * 0.5f);
+		lightColor.z = 0.8f + 0.2f * sin(curTime * 1.5f);
 		diffuseColor = lightColor * glm::vec3(0.5f);
 		ambientColor = diffuseColor * glm::vec3(0.2f);
-		specularColor = glm::vec3(1.0f);
+		specularColor = lightColor;
 		glUniform3fv(glGetUniformLocation(objectShader.Program, "pointLights[2].position"), 1, &pointLightsPos[2][0]);
 		glUniform3fv(glGetUniformLocation(objectShader.Program, "pointLights[2].ambient"), 1, &ambientColor[0]);
 		glUniform3fv(glGetUniformLocation(objectShader.Program, "pointLights[2].diffuse"), 1, &diffuseColor[0]);
@@ -321,14 +355,11 @@ int main()
 		glUniform1f(glGetUniformLocation(objectShader.Program, "pointLights[2].linear"), 0.09f);
 		glUniform1f(glGetUniformLocation(objectShader.Program, "pointLights[2].quadratic"), 0.032f);
 
-		
-
-
 		glm::mat4 model(1.0f);
 
 		for (size_t i = 0; i < 10; ++i) {
 			model = glm::translate(glm::mat4(1.0f), uniquePositions[i]);
-			GLfloat angle = curTime* glm::radians(20.0f) + 20.0f * i;
+			GLfloat angle = curTime * glm::radians(20.0f) + 20.0f * i;
 			model = glm::rotate(model, angle, glm::vec3(0.5f, 0.5f, 0.0f));
 			model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.05f));			
 
@@ -338,6 +369,22 @@ int main()
 			glDrawArrays(GL_TRIANGLES, 0, 12);
 			glBindVertexArray(0);
 		}
+
+		glBindVertexArray(planeVAO);
+	    glActiveTexture(GL_TEXTURE3);
+		glBindTexture(GL_TEXTURE_2D, floorMap);
+
+		glUniform1i(glGetUniformLocation(objectShader.Program, "material.diffuse"), 3);
+		glUniform1i(glGetUniformLocation(objectShader.Program, "material.specular"), 3);
+
+		model = glm::mat4(1.0f);
+		glUniformMatrix4fv(glGetUniformLocation(objectShader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+		glUniformMatrix4fv(glGetUniformLocation(objectShader.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
+		glUniformMatrix4fv(glGetUniformLocation(objectShader.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glBindVertexArray(0);
+
+
 
 
 
@@ -370,6 +417,7 @@ int main()
 
 		glBindVertexArray(lightVAO);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
+
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -447,3 +495,4 @@ unsigned int loadTexture(const char *path)
 
 	return textureID;
 }
+
