@@ -307,7 +307,7 @@ int main()
 		glm::vec3 lightColor(1.0f);
 		glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
 		glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f);
-		glm::vec3 specularColor = lightColor;
+		glm::vec3 specularColor = 0.5f * lightColor;
 		glUniform3fv(glGetUniformLocation(objectShader.Program, "dirLight.direction"), 1, &sunLightDir[0]);
 		glUniform3fv(glGetUniformLocation(objectShader.Program, "dirLight.ambient"), 1, &ambientColor[0]);
 		glUniform3fv(glGetUniformLocation(objectShader.Program, "dirLight.diffuse"), 1, &diffuseColor[0]);
