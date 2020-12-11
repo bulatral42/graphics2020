@@ -36,6 +36,7 @@ glm::vec3 lightColorWhite(1.0f, 1.0f, 1.0f);
 glm::vec3 lightColorRed(1.0f, 0.0f, 0.0f);
 glm::vec3 lightColorGreen(0.0f, 1.0f, 0.0f);
 glm::vec3 lightColorBlue(0.0f, 0.0f, 1.0f);
+glm::vec3 borderColor(0.78f, 0.1f, 0.52f);
 
 struct Material {
 	glm::vec3 ambient;
@@ -77,8 +78,6 @@ int main()
 	glfwSetScrollCallback(window, scroll_callback);
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_STENCIL_TEST);
 
 	int width, height;
 	glfwGetFramebufferSize(window, &width, &height);
@@ -87,7 +86,13 @@ int main()
 	// Shaders
 	Shader objectShader("../LibStuff/Include/Shaders/src/vshader3.vsh", "../LibStuff/Include/Shaders/src/fshader3.fsh");
 	Shader lightShader("../LibStuff/Include/Shaders/src/vlight1.vsh", "../LibStuff/Include/Shaders/src/flight1.fsh");
-	Shader floorShader("../LibStuff/Include/Shaders/src/vfloor.vsh", "../LibStuff/Include/Shaders/src/ffloor.fsh");
+	Shader borderShader("../LibStuff/Include/Shaders/src/vshader3.vsh", "../LibStuff/Include/Shaders/src/fborder.fsh");
+
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
+	glEnable(GL_STENCIL_TEST);
+	glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 
 	// Vertices
 	GLfloat vertTriangle[] = {
@@ -233,7 +238,7 @@ int main()
         glm::vec3(0.0f,  0.0f,  0.0f),
         glm::vec3(2.0f,  5.0f, -9.0f),
         glm::vec3(-1.5f, -2.2f, -2.5f),
-        glm::vec3(-3.8f, -2.0f, -12.3f),
+        glm::vec3(-3.8f, -2.0f, -9.3f),
         glm::vec3(2.4f, -0.4f, -3.5f),
         glm::vec3(-1.7f,  3.0f, -7.5f),
         glm::vec3(1.3f, -2.0f, -2.5f),
@@ -263,7 +268,7 @@ int main()
 		deltaTime = curTime - lastTime;
 		lastTime = curTime;
 
-		processInput(window); 
+		processInput(window);
 		// Rendering
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
@@ -355,13 +360,15 @@ int main()
 		glUniform1f(glGetUniformLocation(objectShader.Program, "pointLights[2].linear"), 0.09f);
 		glUniform1f(glGetUniformLocation(objectShader.Program, "pointLights[2].quadratic"), 0.032f);
 
-		glm::mat4 model(1.0f);
+		glStencilFunc(GL_ALWAYS, 1, 0xFF);
+		glStencilMask(0xFF);
 
+		glm::mat4 model(1.0f);
 		for (size_t i = 0; i < 10; ++i) {
 			model = glm::translate(glm::mat4(1.0f), uniquePositions[i]);
 			GLfloat angle = curTime * glm::radians(20.0f) + 20.0f * i;
 			model = glm::rotate(model, angle, glm::vec3(0.5f, 0.5f, 0.0f));
-			model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.05f));			
+			model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));			
 
 			glUniformMatrix4fv(glGetUniformLocation(objectShader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
 
@@ -370,6 +377,11 @@ int main()
 			glBindVertexArray(0);
 		}
 
+
+		// Plane floor
+		//glStencilFunc(GL_ALWAYS, 1, 0xFF);
+		glStencilMask(0x00);
+		objectShader.Use();
 		glBindVertexArray(planeVAO);
 	    glActiveTexture(GL_TEXTURE3);
 		glBindTexture(GL_TEXTURE_2D, floorMap);
@@ -385,9 +397,8 @@ int main()
 		glBindVertexArray(0);
 
 
-
-
-
+		// Point lighters
+		glStencilMask(0x00);
 		lightShader.Use();
 		for (size_t i = 0; i < 3; ++i) {
 			model = glm::translate(glm::mat4(1.0f), pointLightsPos[i]);
@@ -406,6 +417,8 @@ int main()
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
 		
+
+		// Direct lighter
 		model = glm::translate(glm::mat4(1.0f), -sunLightDir);
 		//model = glm::scale(model, glm::vec3(0.2f));
 		glUniformMatrix4fv(glGetUniformLocation(lightShader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
@@ -417,6 +430,36 @@ int main()
 
 		glBindVertexArray(lightVAO);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
+
+
+		// Borders
+		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+		glStencilMask(0x00);
+		glDisable(GL_DEPTH_TEST);
+		borderShader.Use();
+		glUniformMatrix4fv(glGetUniformLocation(borderShader.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
+		glUniformMatrix4fv(glGetUniformLocation(borderShader.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+		glUniform3fv(glGetUniformLocation(borderShader.Program, "viewPos"), 1, &camera.Position[0]);
+		glUniform1f(glGetUniformLocation(borderShader.Program, "curTime"), curTime);
+		glUniform3fv(glGetUniformLocation(borderShader.Program, "borderColor"), 1, &borderColor[0]);
+		GLfloat borderScale = 1.1f;
+		if (borderColor.x > 0.01f) {
+			for (size_t i = 0; i < 10; ++i) {
+				model = glm::translate(glm::mat4(1.0f), uniquePositions[i]);
+				GLfloat angle = curTime * glm::radians(20.0f) + 20.0f * i;
+				model = glm::rotate(model, angle, glm::vec3(0.5f, 0.5f, 0.0f));
+				model = glm::scale(model, glm::vec3(borderScale));
+
+				glUniformMatrix4fv(glGetUniformLocation(borderShader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+
+				glBindVertexArray(VAO);
+				glDrawArrays(GL_TRIANGLES, 0, 12);
+				glBindVertexArray(0);
+			}
+		}
+		glStencilMask(0xFF);
+		glStencilFunc(GL_ALWAYS, 1, 0xFF);
+		glEnable(GL_DEPTH_TEST);
 
 
 		glfwSwapBuffers(window);
@@ -439,15 +482,16 @@ void processInput(GLFWwindow* window)
 
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
 		camera.ProcessKeyboard(Camera_Movement::FORWARD, deltaTime);
-	}
-	else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+	} else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
 		camera.ProcessKeyboard(Camera_Movement::BACKWARD, deltaTime);
-	}
-	else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+	} else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
 		camera.ProcessKeyboard(Camera_Movement::LEFT, deltaTime);
-	}
-	else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+	} else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
 		camera.ProcessKeyboard(Camera_Movement::RIGHT, deltaTime);
+	} else if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
+		borderColor = glm::vec3(0.78f, 0.1f, 0.52f);
+	} else if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
+		borderColor = glm::vec3(0.0f);
 	}
 }
 
