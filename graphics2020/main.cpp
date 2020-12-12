@@ -16,7 +16,7 @@
 
 // Window dimensions
 const GLuint WIDTH = 1400, HEIGHT = 800;
-
+int effectFlag = 0;
 
 glm::vec3 cameraPos(0.0f, 0.0f, 3.0f);
 glm::vec3 cameraFront(0.0f, 0.0f, -1.0f);
@@ -91,6 +91,7 @@ int main()
 	Shader objectShader("../LibStuff/Include/Shaders/src/vshader3.vsh", "../LibStuff/Include/Shaders/src/fshader3.fsh");
 	Shader lightShader("../LibStuff/Include/Shaders/src/vlight1.vsh", "../LibStuff/Include/Shaders/src/flight1.fsh");
 	Shader borderShader("../LibStuff/Include/Shaders/src/vshader3.vsh", "../LibStuff/Include/Shaders/src/fborder.fsh");
+	Shader screenShader("../LibStuff/Include/Shaders/src/vscreen.vsh", "../LibStuff/Include/Shaders/src/fscreen.fsh");
 
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
@@ -113,8 +114,9 @@ int main()
 		0.0f,  0.5f, 0.0f,   0.3f, 0.3f, 0.3f,   2.0f, 4.0f,  -0.66f, 0.34f, -0.66f,
 
 		-0.5f, -0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,  0.0f, 1.0f, 0.0f,
-		0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   4.0f, 0.0f,  0.0f, 1.0f, 0.0f,
-		0.0f, -0.5f, -0.5f,   0.0f, 0.0f, 1.0f,   2.0f, 4.0f,  0.0f, 1.0f, 0.0f
+		0.0f, -0.5f, -0.5f,   0.0f, 0.0f, 1.0f,   2.0f, 4.0f,  0.0f, 1.0f, 0.0f,
+		0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   4.0f, 0.0f,  0.0f, 1.0f, 0.0f
+		
 	};
 
 	GLuint VBO[2], VAO;
@@ -203,12 +205,13 @@ int main()
 
 	GLfloat vertPlane[] = {
 		 10.0f, -3.0f,  10.0f,  2.0f, 0.0f,  0.0f, 1.0f, 0.0f,
-		-10.0f, -3.0f,  10.0f,  0.0f, 0.0f,  0.0f, 1.0f, 0.0f,
 		-10.0f, -3.0f, -10.0f,  0.0f, 2.0f,  0.0f, 1.0f, 0.0f,
+		-10.0f, -3.0f,  10.0f,  0.0f, 0.0f,  0.0f, 1.0f, 0.0f,
 
 		 10.0f, -3.0f,  10.0f,  2.0f, 0.0f,  0.0f, 1.0f, 0.0f,
-		-10.0f, -3.0f, -10.0f,  0.0f, 2.0f,  0.0f, 1.0f, 0.0f,
-		 10.0f, -3.0f, -10.0f,  2.0f, 2.0f,  0.0f, 1.0f, 0.0f
+		 10.0f, -3.0f, -10.0f,  2.0f, 2.0f,  0.0f, 1.0f, 0.0f,
+		-10.0f, -3.0f, -10.0f,  0.0f, 2.0f,  0.0f, 1.0f, 0.0f
+		 
 	};
 
 	GLuint planeVAO, planeVBO;
@@ -231,6 +234,60 @@ int main()
 	
 	glBindVertexArray(0);
 
+
+	GLfloat vertScreen[] = {
+		-1.0f, -1.0f, 0.0f,  0.0f, 0.0f,
+		 1.0f, -1.0f, 0.0f,  1.0f, 0.0f,
+		 1.0f,  1.0f, 0.0f,  1.0f, 1.0f,
+
+		-1.0f, -1.0f, 0.0f,  0.0f, 0.0f,
+		 1.0f,  1.0f, 0.0f,  1.0f, 1.0f,
+		-1.0f,  1.0f, 0.0f,  0.0f, 1.0f
+    };
+
+	GLuint scrVAO, scrVBO;
+	glGenVertexArrays(1, &scrVAO);
+	glGenBuffers(1, &scrVBO);
+
+	glBindBuffer(GL_ARRAY_BUFFER, scrVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertScreen), &vertScreen, GL_STATIC_DRAW);
+
+	glBindVertexArray(scrVAO);
+
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void*)0);
+
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
+
+	glBindVertexArray(0);
+
+
+	// Framebuffer
+	GLuint FBO;
+	glGenFramebuffers(1, &FBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+
+	GLuint textureColorBuffer;
+	glGenTextures(1, &textureColorBuffer);
+	glBindTexture(GL_TEXTURE_2D, textureColorBuffer);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, WIDTH, HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorBuffer, 0);
+
+	GLuint RBO;
+	glGenRenderbuffers(1, &RBO);
+	glBindRenderbuffer(GL_RENDERBUFFER, RBO);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, WIDTH, HEIGHT);
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, RBO);
+
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+		std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+	}
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	GLuint diffuseMap = loadTexture("container_diff.png");
 	GLuint specularMap = loadTexture("container_spec.png");
@@ -277,6 +334,8 @@ int main()
 	// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	// glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	while (!glfwWindowShouldClose(window)) {
+		glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+		
 		GLfloat curTime = (GLfloat)glfwGetTime();
 		deltaTime = curTime - lastTime;
 		lastTime = curTime;
@@ -377,7 +436,7 @@ int main()
 
 		glStencilFunc(GL_ALWAYS, 1, 0xFF);
 		glStencilMask(0xFF);
-
+		glEnable(GL_CULL_FACE);
 		glm::mat4 model(1.0f);
 		for (size_t i = 0; i < 10; ++i) {
 			model = glm::translate(glm::mat4(1.0f), uniquePositions[i]);
@@ -396,6 +455,7 @@ int main()
 		// Plane floor
 		//glStencilFunc(GL_ALWAYS, 1, 0xFF);
 		glStencilMask(0x00);
+		glDisable(GL_CULL_FACE);
 		objectShader.Use();
 		glBindVertexArray(planeVAO);
 	    glActiveTexture(GL_TEXTURE3);
@@ -478,6 +538,7 @@ int main()
 		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
 		glStencilMask(0x00);
 		glDisable(GL_DEPTH_TEST);
+		glEnable(GL_CULL_FACE);
 		borderShader.Use();
 		glUniformMatrix4fv(glGetUniformLocation(borderShader.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
 		glUniformMatrix4fv(glGetUniformLocation(borderShader.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
@@ -502,7 +563,21 @@ int main()
 		glStencilMask(0xFF);
 		glStencilFunc(GL_ALWAYS, 1, 0xFF);
 		glEnable(GL_DEPTH_TEST);
+		glDisable(GL_CULL_FACE);
 
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		screenShader.Use();
+		glActiveTexture(GL_TEXTURE5);
+		glBindTexture(GL_TEXTURE_2D, textureColorBuffer);
+		glUniform1i(glGetUniformLocation(screenShader.Program, "screenTexture"), 5);
+		glUniform1i(glGetUniformLocation(screenShader.Program, "effectFlag"), effectFlag);
+		glBindVertexArray(scrVAO);
+		glDisable(GL_DEPTH_TEST);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glEnable(GL_DEPTH_TEST);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -534,6 +609,16 @@ void processInput(GLFWwindow* window)
 		borderColor = glm::vec3(0.78f, 0.1f, 0.52f);
 	} else if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
 		borderColor = glm::vec3(0.0f);
+	} else if (glfwGetKey(window, GLFW_KEY_N) == GLFW_PRESS) {
+		effectFlag = 0;
+	} else if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS) {
+		effectFlag = 1;
+	} else if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS) {
+		effectFlag = 2;
+	} else if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS) {
+		effectFlag = 3;
+	} else if (glfwGetKey(window, GLFW_KEY_H) == GLFW_PRESS) {
+		effectFlag = 4;
 	}
 }
 

@@ -6,5 +6,7 @@ uniform vec3 lightColor;
 
 void main()
 {
-    FragColor = vec4(lightColor, 1.0f); //vec4(1.0f);
+    float gamma = 2.2;
+    FragColor = vec4(lightColor, 1.0f);
+    //FragColor.rgb = pow(FragColor.rgb, vec3(1.0/gamma));
 }
