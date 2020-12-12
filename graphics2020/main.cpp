@@ -1,4 +1,6 @@
 #include <iostream>
+#include <map>
+#include <vector>
 
 #define GLEW_STATIC
 #include <GL/glew.h>
@@ -9,7 +11,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <Shaders/shader.h>
 #include <camera.h>
-#include "stb_image.h"
+#include <stb/stb_image.h>
 
 
 // Window dimensions
@@ -38,6 +40,7 @@ glm::vec3 lightColorRed(1.0f, 0.0f, 0.0f);
 glm::vec3 lightColorGreen(0.0f, 1.0f, 0.0f);
 glm::vec3 lightColorBlue(0.0f, 0.0f, 1.0f);
 glm::vec3 borderColor(0.78f, 0.1f, 0.52f);
+
 
 struct Material {
 	glm::vec3 ambient;
@@ -233,6 +236,7 @@ int main()
 	GLuint specularMap = loadTexture("container_spec.png");
 	GLuint emissionMap = loadTexture("container_emission.jpg");
 	GLuint floorMap = loadTexture("floor_laminate.jpg");
+	GLuint windowMap = loadTexture("window_red.png");
 
 
 	glm::vec3 uniquePositions[] = {
@@ -247,6 +251,14 @@ int main()
         glm::vec3(1.5f,  0.2f, -1.5f),
         glm::vec3(-1.3f,  1.0f, -1.5f)
 	};
+
+	std::vector<glm::vec3> windowPos;
+	windowPos.push_back(glm::vec3(-8.0f, 0.0f, -1.48f));
+	windowPos.push_back(glm::vec3(-9.0f, 0.0f, -0.51f));
+	windowPos.push_back(glm::vec3(-7.0f, 0.0f, -0.90f));
+	windowPos.push_back(glm::vec3(4.0f, 0.0f, 0.9f));
+	windowPos.push_back(glm::vec3(6.0f, 0.0f, 0.51f));
+	windowPos.push_back(glm::vec3(7.0f, 0.0f, 0.7f));
 
 
 	Material gold{ glm::vec3(0.24725f, 0.1995f, 0.0745),
@@ -274,6 +286,8 @@ int main()
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 		
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		objectShader.Use();
 		
 		glActiveTexture(GL_TEXTURE0);
@@ -433,6 +447,33 @@ int main()
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 
 
+
+		// Windows
+		objectShader.Use();
+		glActiveTexture(GL_TEXTURE4);
+		glBindTexture(GL_TEXTURE_2D, windowMap);
+
+		glUniform1i(glGetUniformLocation(objectShader.Program, "material.diffuse"), 4);
+		glUniform1i(glGetUniformLocation(objectShader.Program, "material.ambient"), 4);
+		glUniform1i(glGetUniformLocation(objectShader.Program, "material.specular"), 4);
+
+		std::map<GLfloat, glm::vec3> sortedWindows;
+		for (size_t i = 0; i < windowPos.size(); ++i) {
+			GLfloat distance = glm::length(camera.Position - windowPos[i]);
+			sortedWindows[distance] = windowPos[i];
+		}
+		glBindVertexArray(planeVAO); 
+		for (auto it = sortedWindows.rbegin(); it != sortedWindows.rend(); ++it) {
+			model = glm::mat4(1.0f);
+			model = glm::translate(model, it->second);
+			model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)); 
+			model = glm::scale(model, glm::vec3(0.1f));
+			glUniformMatrix4fv(glGetUniformLocation(objectShader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+			glDrawArrays(GL_TRIANGLES, 0, 6);
+		}
+		glBindVertexArray(0);
+
+
 		// Borders
 		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
 		glStencilMask(0x00);
@@ -482,13 +523,13 @@ void processInput(GLFWwindow* window)
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-		camera.ProcessKeyboard(Camera_Movement::FORWARD, deltaTime);
+		camera.ProcessKeyboard(Camera_Movement::FORWARD, 2.0f * deltaTime);
 	} else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-		camera.ProcessKeyboard(Camera_Movement::BACKWARD, deltaTime);
+		camera.ProcessKeyboard(Camera_Movement::BACKWARD, 2.0f * deltaTime);
 	} else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-		camera.ProcessKeyboard(Camera_Movement::LEFT, deltaTime);
+		camera.ProcessKeyboard(Camera_Movement::LEFT, 2.0f * deltaTime);
 	} else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-		camera.ProcessKeyboard(Camera_Movement::RIGHT, deltaTime);
+		camera.ProcessKeyboard(Camera_Movement::RIGHT, 2.0f * deltaTime);
 	} else if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
 		borderColor = glm::vec3(0.78f, 0.1f, 0.52f);
 	} else if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
