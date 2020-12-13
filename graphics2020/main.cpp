@@ -395,22 +395,22 @@ int main()
 		
 	};
 	std::vector<std::string> skyfacesSpace {
-		"bkg1_right.png",
-		"bkg1_left.png",
-		"bkg1_top.png",
-		"bkg1_bot.png",
-		"bkg1_front.png",
-		"bkg1_back.png"
+		"textures/bkg1_right.png",
+		"textures/bkg1_left.png",
+		"textures/bkg1_top.png",
+		"textures/bkg1_bot.png",
+		"textures/bkg1_front.png",
+		"textures/bkg1_back.png"
 
 	};
 
-	GLuint diffuseMap = loadTexture("container_diff.png");
-	GLuint specularMap = loadTexture("container_spec.png");
-	GLuint emissionMap = loadTexture("container_emission.jpg");
-	GLuint floorMap = loadTexture("bricks2.jpg"); //loadTexture("floor_laminate.jpg");
-	GLuint floorNormalMap = loadTexture("bricks2_normal.jpg");
-	GLuint floorDepthMap = loadTexture("bricks2_depth.jpg");
-	GLuint windowMap = loadTexture("window_red.png");
+	GLuint diffuseMap = loadTexture("textures/container_diff.png");
+	GLuint specularMap = loadTexture("textures/container_spec.png");
+	GLuint emissionMap = loadTexture("textures/container_emission.jpg");
+	GLuint floorMap = loadTexture("textures/bricks2.jpg"); //loadTexture("floor_laminate.jpg");
+	GLuint floorNormalMap = loadTexture("textures/bricks2_normal.jpg");
+	GLuint floorDepthMap = loadTexture("textures/bricks2_depth.jpg");
+	GLuint windowMap = loadTexture("textures/window_red.png");
 	GLuint skyboxTexture = loadCubeMap(skyfacesSpace);
 
 
