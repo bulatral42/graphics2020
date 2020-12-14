@@ -29,7 +29,7 @@ float lastX = WIDTH / 2.0f;
 float lastY = HEIGHT / 2.0f;
 bool firstMouse = true;
 
-glm::vec3 sunLightDir(-10.0f, -10.0f, 10.0f);
+glm::vec3 sunLightDir(-10.0f, -5.0f, 5.0f);
 glm::vec3 pointLightsPos[] = {
 	glm::vec3(-3.0f, -1.0f, -2.0f),
 	glm::vec3(2.0f, 1.0f, -3.0f),
@@ -122,11 +122,11 @@ int main()
 		
 	};
 
-	GLuint VBO[2], VAO;
+	GLuint VBO, VAO;
 	glGenVertexArrays(1, &VAO);
-	glGenBuffers(2, VBO);
+	glGenBuffers(1, &VBO);
 
-	glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertTriangle), vertTriangle, GL_STATIC_DRAW);
 	
 	glBindVertexArray(VAO);
@@ -187,15 +187,15 @@ int main()
 		-0.5f,  0.5f, -0.5f,
 	};
 
-	GLuint lightVAO;
+	GLuint cubeVAO, cubeVBO;
 
-	glGenVertexArrays(1, &lightVAO);
-	glGenBuffers(1, &VBO[1]);
+	glGenVertexArrays(1, &cubeVAO);
+	glGenBuffers(1, &cubeVBO);
 
-	glBindBuffer(GL_ARRAY_BUFFER, VBO[1]);
+	glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertCube), vertCube, GL_STATIC_DRAW);
 
-	glBindVertexArray(lightVAO);
+	glBindVertexArray(cubeVAO);
 
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (void*)0);
@@ -204,13 +204,13 @@ int main()
 
 
 	GLfloat vertPlane[] = {
-		 20.0f, -4.0f,  20.0f,  10.0f, 0.0f,  0.0f,  1.0f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f,
-		-20.0f, -4.0f, -20.0f,  0.0f, 10.0f,  0.0f,  1.0f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f,
-		-20.0f, -4.0f,  20.0f,  0.0f, 0.0f,  0.0f,  1.0f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f,
+		 10.0f, -5.0f,  10.0f,  10.0f, 0.00f,  0.0f,  1.0f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f,
+		-10.0f, -5.0f, -10.0f,  0.00f, 10.0f,  0.0f,  1.0f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f,
+		-10.0f, -5.0f,  10.0f,  0.00f, 0.00f,  0.0f,  1.0f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f,
 
-		 20.0f, -4.0f,  20.0f,  10.0f, 0.0f,  0.0f,  1.0f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f,
-		 20.0f, -4.0f, -20.0f,  10.0f, 10.0f,  0.0f,  1.0f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f,
-		-20.0f, -4.0f, -20.0f,  0.0f, 10.0f,  0.0f,  1.0f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f
+		 10.0f, -5.0f,  10.0f,  10.0f, 0.00f,  0.0f,  1.0f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f,
+		 10.0f, -5.0f, -10.0f,  10.0f, 10.0f,  0.0f,  1.0f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f,
+		-10.0f, -5.0f, -10.0f,  0.00f, 10.0f,  0.0f,  1.0f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f
 	};
 
 	GLuint planeVAO, planeVBO;
@@ -296,65 +296,6 @@ int main()
 
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
-
-	glBindVertexArray(0);
-
-
-	GLfloat vertSkybox[] = {
-	    -1.0f,  1.0f, -1.0f,
-		-1.0f, -1.0f, -1.0f,
-		 1.0f, -1.0f, -1.0f,
-		 1.0f, -1.0f, -1.0f,
-		 1.0f,  1.0f, -1.0f,
-		-1.0f,  1.0f, -1.0f,
-
-		-1.0f, -1.0f,  1.0f,
-		-1.0f, -1.0f, -1.0f,
-		-1.0f,  1.0f, -1.0f,
-		-1.0f,  1.0f, -1.0f,
-		-1.0f,  1.0f,  1.0f,
-		-1.0f, -1.0f,  1.0f,
-
-		 1.0f, -1.0f, -1.0f,
-		 1.0f, -1.0f,  1.0f,
-		 1.0f,  1.0f,  1.0f,
-		 1.0f,  1.0f,  1.0f,
-		 1.0f,  1.0f, -1.0f,
-		 1.0f, -1.0f, -1.0f,
-
-		-1.0f, -1.0f,  1.0f,
-		-1.0f,  1.0f,  1.0f,
-		 1.0f,  1.0f,  1.0f,
-		 1.0f,  1.0f,  1.0f,
-		 1.0f, -1.0f,  1.0f,
-		-1.0f, -1.0f,  1.0f,
-
-		-1.0f,  1.0f, -1.0f,
-		 1.0f,  1.0f, -1.0f,
-		 1.0f,  1.0f,  1.0f,
-		 1.0f,  1.0f,  1.0f,
-		-1.0f,  1.0f,  1.0f,
-		-1.0f,  1.0f, -1.0f,
-
-		-1.0f, -1.0f, -1.0f,
-		-1.0f, -1.0f,  1.0f,
-		 1.0f, -1.0f, -1.0f,
-		 1.0f, -1.0f, -1.0f,
-		-1.0f, -1.0f,  1.0f,
-		 1.0f, -1.0f,  1.0f
-	};
-
-	GLuint skyboxVAO, skyboxVBO;
-	glGenVertexArrays(1, &skyboxVAO);
-	glGenBuffers(1, &skyboxVBO);
-
-	glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertSkybox), &vertSkybox, GL_STATIC_DRAW);
-
-	glBindVertexArray(skyboxVAO);
-
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (void*)0);
 
 	glBindVertexArray(0);
 
@@ -471,6 +412,7 @@ int main()
 		glm::mat4 view = camera.GetViewMatrix();
 		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (GLfloat)WIDTH / (GLfloat)HEIGHT, 0.1f, 100.0f);
 
+		// Skybox
 		glStencilMask(0x00);
 		glDisable(GL_CULL_FACE); 
 		glDepthMask(GL_FALSE);
@@ -484,7 +426,7 @@ int main()
 		glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
 		glUniform1i(glGetUniformLocation(skyboxShader.Program, "skyboxTexture"), 0);
 
-		glBindVertexArray(skyboxVAO);
+		glBindVertexArray(cubeVAO);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		glDepthMask(GL_TRUE);
@@ -674,14 +616,14 @@ int main()
 			lightColor[i] += 0.8f;
 			glUniform3fv(glGetUniformLocation(lightShader.Program, "lightColor"), 1, &lightColor[0]);
 
-			glBindVertexArray(lightVAO);
+			glBindVertexArray(cubeVAO);
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
 		
 
 		// Direct lighter
-		model = glm::translate(glm::mat4(1.0f), -sunLightDir);
-		//model = glm::scale(model, glm::vec3(0.2f));
+		model = glm::translate(glm::mat4(1.0f), camera.Position - 5.0f * sunLightDir);
+		model = glm::scale(model, glm::vec3(3.0f));
 		glUniformMatrix4fv(glGetUniformLocation(lightShader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
 		glUniformMatrix4fv(glGetUniformLocation(lightShader.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
 		glUniformMatrix4fv(glGetUniformLocation(lightShader.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
@@ -689,7 +631,7 @@ int main()
 		lightColor = glm::vec3(1.0f);
 		glUniform3fv(glGetUniformLocation(lightShader.Program, "lightColor"), 1, &lightColor[0]);
 
-		glBindVertexArray(lightVAO);
+		glBindVertexArray(cubeVAO);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 
 
@@ -769,9 +711,9 @@ int main()
 		glfwPollEvents();
 	}
 
-	glDeleteVertexArrays(1, &lightVAO);
+	glDeleteVertexArrays(1, &cubeVAO);
 	glDeleteVertexArrays(1, &VAO);
-	glDeleteBuffers(2, VBO);
+	glDeleteBuffers(2, &VBO);
 	glfwTerminate();
 
 	return 0;

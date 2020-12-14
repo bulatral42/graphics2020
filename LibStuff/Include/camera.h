@@ -37,13 +37,21 @@ public:
     float MouseSensitivity;
     float Zoom;
 
+    struct Limits {
+        glm::vec3 negCorner;
+        glm::vec3 posCorner;
+    } cameraLimits;
+
     Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), 
            glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), 
-           float yaw = YAW, float pitch = PITCH) : 
+           float yaw = YAW, float pitch = PITCH,
+           glm::vec3 negCorner = glm::vec3(-10.0f, -3.0f, -10.0f),
+           glm::vec3 posCorner = glm::vec3(10.0f, 10.0f, 10.0f)) :
            Front{ glm::vec3(0.0f, 0.0f, -1.0f) },
            MovementSpeed{ SPEED }, 
            MouseSensitivity{ SENSITIVITY }, 
-           Zoom{ ZOOM }
+           Zoom{ ZOOM },
+           cameraLimits{ negCorner, posCorner}
     {
         Position = position;
         WorldUp = up;
@@ -54,11 +62,14 @@ public:
 
     Camera(float posX, float posY, float posZ, 
            float upX, float upY, float upZ, 
-           float yaw, float pitch) : 
+           float yaw, float pitch,
+           glm::vec3 negCorner = glm::vec3(-10.0f, -3.0f, -10.0f),
+           glm::vec3 posCorner = glm::vec3(10.0f, 10.0f, 10.0f)) :
            Front{ glm::vec3(0.0f, 0.0f, -1.0f) }, 
            MovementSpeed{ SPEED }, 
            MouseSensitivity{ SENSITIVITY }, 
-           Zoom{ ZOOM }
+           Zoom{ ZOOM },
+           cameraLimits{ negCorner, posCorner }
     {
         Position = glm::vec3(posX, posY, posZ);
         WorldUp = glm::vec3(upX, upY, upZ);
@@ -75,14 +86,24 @@ public:
     void ProcessKeyboard(Camera_Movement direction, float deltaTime)
     {
         float velocity = MovementSpeed * deltaTime;
-        if (direction == Camera_Movement::FORWARD)
+        if (direction == Camera_Movement::FORWARD) {
             Position += Front * velocity;
-        if (direction == Camera_Movement::BACKWARD)
+        }
+        if (direction == Camera_Movement::BACKWARD) {
             Position -= Front * velocity;
-        if (direction == Camera_Movement::LEFT)
+        }
+        if (direction == Camera_Movement::LEFT) {
             Position -= Right * velocity;
-        if (direction == Camera_Movement::RIGHT)
+        }
+        if (direction == Camera_Movement::RIGHT) {
             Position += Right * velocity;
+        }
+        Position.x = Position.x < cameraLimits.negCorner.x ? cameraLimits.negCorner.x : Position.x;
+        Position.x = Position.x > cameraLimits.posCorner.x ? cameraLimits.posCorner.x : Position.x;
+        Position.y = Position.y < cameraLimits.negCorner.y ? cameraLimits.negCorner.y : Position.y;
+        Position.y = Position.y > cameraLimits.posCorner.y ? cameraLimits.posCorner.y : Position.y;
+        Position.z = Position.z < cameraLimits.negCorner.z ? cameraLimits.negCorner.z : Position.z;
+        Position.z = Position.z > cameraLimits.posCorner.z ? cameraLimits.posCorner.z : Position.z;
     }
 
     void ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch = true)
