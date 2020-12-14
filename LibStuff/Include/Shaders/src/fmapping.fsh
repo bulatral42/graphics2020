@@ -3,10 +3,6 @@
 out vec4 FragColor;
 
 
-//in vec2 TexCoord;
-//in vec3 NormalCoord;
-//in vec3 FragPos;
-
 struct Material {
     sampler2D diffuse;
     sampler2D specular;
@@ -48,6 +44,7 @@ in VSH_OUT {
 vec4 calcDirLight(DirLight light, vec3 normal, vec3 viewDir);
 vec4 calcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir); 
 vec2 reliefPM(vec2 texCoord, vec3 viewDir);
+vec2 ParallaxMapping(vec2 texCoords, vec3 viewDir);
 
 uniform DirLight dirLight;
 uniform PointLight pointLights[NR_POINT_LIGHTS];
@@ -60,23 +57,20 @@ uniform Material material;
 
 uniform sampler2D normalMap;
 uniform sampler2D depthMap;
-uniform float height_scale;
+uniform float heightScale;
 
-//float near = 0.1f; 
-//float far  = 100.0f; 
-  
-//float LinearizeDepth(float depth) 
-//{
-//    float z = depth * 2.0f - 1.0f;
-//    return (2.0f * near * far) / (far + near - z * (far - near));	
-//}
+
 vec2 newTexCoord;
-//float ldp;
 
 void main()
 {
     vec3 viewDir = normalize(fsh_in.TangentViewPos - fsh_in.TangentFragPos);
     newTexCoord = reliefPM(fsh_in.TexCoord,  viewDir);
+
+    if (newTexCoord.x > 9.0 || newTexCoord.y > 9.0 || newTexCoord.x < 0.0 || newTexCoord.y < 0.0) {
+        discard;
+    }
+
     vec3 normal = texture(normalMap, newTexCoord).rgb;
     normal = normalize(normal * 2.0 - 1.0); // tangent space
     
@@ -92,7 +86,6 @@ void main()
 
     float gamma = 2.2;
     FragColor = resLight;
-    //FragColor = vec4(normal, 1.0f);
     //FragColor.rgb = pow(FragColor.rgb, vec3(1.0 / gamma));
 }
 
@@ -127,27 +120,26 @@ vec4 calcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
 
 float depthValue(vec2 texCoord)
 {
-    return texCoord.r;
+    return texture(depthMap, texCoord).r;
+    //return texCoord.r;
 }
 
 vec2 reliefPM(vec2 texCoord, vec3 viewDir)
 {
-	const float minLayers = 2.0f;
-	const float maxLayers = 32.0f;
-	float numLayers = mix(maxLayers, minLayers, abs(dot(vec3(0.0f, 0.0f, 1.0f), viewDir)));
+	const float minLayers = 4.0f, maxLayers = 32.0f;
+	float numLayers = mix(maxLayers, minLayers, abs(viewDir.z));
 
 	float deltaDepth = 1.0f / numLayers;
-	vec2 deltaTexCoord = height_scale * viewDir.xy / (viewDir.z * numLayers);
+	vec2 deltaTexCoord = heightScale * viewDir.xy / (viewDir.z * numLayers);
 
 	vec2 curTexCoord = texCoord;
-	float curLayerDepth = 0.;
-	float curDepthValue = depthValue(curTexCoord);
+	float curLayerDepth = 0.0f;
+	float curDepthValue = texture(depthMap, curTexCoord).r;
 	while (curDepthValue > curLayerDepth) {
 		curLayerDepth += deltaDepth;
 		curTexCoord -= deltaTexCoord;
-		curDepthValue = depthValue(curTexCoord);
+		curDepthValue = texture(depthMap, curTexCoord).r;
 	}
-
 
 	deltaTexCoord *= 0.5;
 	deltaDepth *= 0.5;
@@ -155,25 +147,20 @@ vec2 reliefPM(vec2 texCoord, vec3 viewDir)
 	curTexCoord += deltaTexCoord;
 	curLayerDepth -= deltaDepth;
 
-	const int reliefSteps = 5;
-	int curStep = reliefSteps;
-	while (curStep > 0) {
-		curDepthValue = depthValue(curTexCoord);
+    const int maxSteps = 7;
+    for (int step = 0; step < maxSteps; ++step) {
+        curDepthValue = texture(depthMap, curTexCoord).r;
 		deltaTexCoord *= 0.5;
 		deltaDepth *= 0.5;
 
 		if (curDepthValue > curLayerDepth) {
 			curTexCoord -= deltaTexCoord;
 			curLayerDepth += deltaDepth;
-		}
-
-		else {
+		} else {
 			curTexCoord += deltaTexCoord;
 			curLayerDepth -= deltaDepth;
 		}
-		curStep--;
-	}
+    }
 
-	//lastDepthValue = currentDepthValue;
 	return curTexCoord;
 }

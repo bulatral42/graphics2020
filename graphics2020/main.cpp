@@ -21,14 +21,18 @@ int effectFlag = 0;
 glm::vec3 cameraPos(0.0f, 0.0f, 3.0f);
 glm::vec3 cameraFront(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp(0.0f, 1.0f, 0.0f);
+
+// Time control
 GLfloat deltaTime = 0.0f;
 GLfloat lastTime = 0.0f;
 
+// Camera
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 float lastX = WIDTH / 2.0f;
 float lastY = HEIGHT / 2.0f;
 bool firstMouse = true;
 
+// Lighters
 glm::vec3 sunLightDir(-10.0f, -5.0f, 5.0f);
 glm::vec3 pointLightsPos[] = {
 	glm::vec3(-3.0f, -1.0f, -2.0f),
@@ -79,6 +83,7 @@ int main()
 		return -1;
 	}
 
+	// Movement callbacks
 	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetScrollCallback(window, scroll_callback);
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -96,14 +101,15 @@ int main()
 	Shader skyboxShader("../LibStuff/Include/Shaders/src/vskybox.vsh", "../LibStuff/Include/Shaders/src/fskybox.fsh");
 	Shader mappingShader("../LibStuff/Include/Shaders/src/vmapping.vsh", "../LibStuff/Include/Shaders/src/fmapping.fsh");
 
+	// Tests: depth, stencil
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 	glEnable(GL_STENCIL_TEST);
 	glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
 	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 
-	// Vertices
-	GLfloat vertTriangle[] = {
+	// Pyramid
+	GLfloat vertPyramid[] = {
 		-0.5f, -0.5f, 0.0f,  0.0f, 0.0f,  0.0f, 0.0f, 1.0f,
 		0.5f, -0.5f, 0.0f,   4.0f, 0.0f,  0.0f, 0.0f, 1.0f,
 		0.0f,  0.5f, 0.0f,   2.0f, 4.0f,  0.0f, 0.0f, 1.0f,
@@ -122,14 +128,14 @@ int main()
 		
 	};
 
-	GLuint VBO, VAO;
-	glGenVertexArrays(1, &VAO);
-	glGenBuffers(1, &VBO);
+	GLuint pyraVBO, pyraVAO;
+	glGenVertexArrays(1, &pyraVAO);
+	glGenBuffers(1, &pyraVBO);
 
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertTriangle), vertTriangle, GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, pyraVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertPyramid), vertPyramid, GL_STATIC_DRAW);
 	
-	glBindVertexArray(VAO);
+	glBindVertexArray(pyraVAO);
 
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
@@ -142,7 +148,7 @@ int main()
 	
 	glBindVertexArray(0);
 
-
+	// Cube
 	GLfloat vertCube[] = {
 		-0.5f, -0.5f, -0.5f,
 		 0.5f, -0.5f, -0.5f,
@@ -204,13 +210,13 @@ int main()
 
 
 	GLfloat vertPlane[] = {
-		 10.0f, -5.0f,  10.0f,  10.0f, 0.00f,  0.0f,  1.0f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f,
-		-10.0f, -5.0f, -10.0f,  0.00f, 10.0f,  0.0f,  1.0f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f,
-		-10.0f, -5.0f,  10.0f,  0.00f, 0.00f,  0.0f,  1.0f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f,
+		 10.0f, -6.0f,  10.0f,  9.0f, 0.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f,
+		-10.0f, -6.0f, -10.0f,  0.0f, 9.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f,
+		-10.0f, -6.0f,  10.0f,  0.0f, 0.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f,
 
-		 10.0f, -5.0f,  10.0f,  10.0f, 0.00f,  0.0f,  1.0f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f,
-		 10.0f, -5.0f, -10.0f,  10.0f, 10.0f,  0.0f,  1.0f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f,
-		-10.0f, -5.0f, -10.0f,  0.00f, 10.0f,  0.0f,  1.0f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f
+		 10.0f, -6.0f,  10.0f,  9.0f, 0.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f,
+		 10.0f, -6.0f, -10.0f,  9.0f, 9.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f,
+		-10.0f, -6.0f, -10.0f,  0.0f, 9.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f
 	};
 
 	GLuint planeVAO, planeVBO;
@@ -413,10 +419,11 @@ int main()
 		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (GLfloat)WIDTH / (GLfloat)HEIGHT, 0.1f, 100.0f);
 
 		// Skybox
-		glStencilMask(0x00);
-		glDisable(GL_CULL_FACE); 
-		glDepthMask(GL_FALSE);
 		skyboxShader.Use();
+
+		glStencilMask(0x00);
+		glDisable(GL_CULL_FACE);
+		glDepthMask(GL_FALSE);
 
 		glm::mat4 viewSky = glm::mat4(glm::mat3(camera.GetViewMatrix()));
 		glUniformMatrix4fv(glGetUniformLocation(skyboxShader.Program, "view"), 1, GL_FALSE, glm::value_ptr(viewSky));
@@ -432,9 +439,15 @@ int main()
 		glDepthMask(GL_TRUE);
 
 
-		
 		objectShader.Use();
 		
+		// General props
+		glUniformMatrix4fv(glGetUniformLocation(objectShader.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
+		glUniformMatrix4fv(glGetUniformLocation(objectShader.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+		glUniform3fv(glGetUniformLocation(objectShader.Program, "viewPos"), 1, &camera.Position[0]);
+		glUniform1f(glGetUniformLocation(objectShader.Program, "curTime"), curTime);
+
+		// Puramid material props
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, diffuseMap);
 		glUniform1i(glGetUniformLocation(objectShader.Program, "material.diffuse"), 0);
@@ -447,25 +460,10 @@ int main()
 		glBindTexture(GL_TEXTURE_2D, emissionMap);
 		glUniform1i(glGetUniformLocation(objectShader.Program, "material.emission"), 2);
 
-
-		glUniformMatrix4fv(glGetUniformLocation(objectShader.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
-		glUniformMatrix4fv(glGetUniformLocation(objectShader.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-
-
-		//glUniform3fv(glGetUniformLocation(objectShader.Program, "lightColor"), 1, &lightColorWhite[0]);
-		//glUniform3fv(glGetUniformLocation(objectShader.Program, "lightPos"), 1, &sunLightPos[0]);
-		glUniform3fv(glGetUniformLocation(objectShader.Program, "viewPos"), 1, &camera.Position[0]);
-
-		/*
-		glUniform3fv(glGetUniformLocation(objectShader.Program, "material.ambient"), 1, &gold.ambient[0]);
-		glUniform3fv(glGetUniformLocation(objectShader.Program, "material.diffuse"), 1, &gold.diffuse[0]);
-		glUniform3fv(glGetUniformLocation(objectShader.Program, "material.specular"), 1, &gold.specular[0]);
-		glUniform1f(glGetUniformLocation(objectShader.Program, "material.shininess"), gold.shininess);
-		*/
 		glUniform1f(glGetUniformLocation(objectShader.Program, "material.shininess"), chrome.shininess);
 
-		glUniform1f(glGetUniformLocation(objectShader.Program, "curTime"), curTime);
-
+		// Lighters colors setting
+		// to pyramids and floor
 		glm::vec3 lightColor(1.0f);
 		glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
 		glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f);
@@ -550,6 +548,7 @@ int main()
 		glUniform1f(glGetUniformLocation(mappingShader.Program, "pointLights[2].linear"), 0.09f);
 		glUniform1f(glGetUniformLocation(mappingShader.Program, "pointLights[2].quadratic"), 0.032f);
 
+		// Pyramids
 		objectShader.Use();
 		glStencilFunc(GL_ALWAYS, 1, 0xFF);
 		glStencilMask(0xFF);
@@ -563,14 +562,13 @@ int main()
 
 			glUniformMatrix4fv(glGetUniformLocation(objectShader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
 
-			glBindVertexArray(VAO);
+			glBindVertexArray(pyraVAO);
 			glDrawArrays(GL_TRIANGLES, 0, 12);
 			glBindVertexArray(0);
 		}
 
 
 		// Plane floor
-		//glStencilFunc(GL_ALWAYS, 1, 0xFF);
 		glStencilMask(0x00);
 		glDisable(GL_CULL_FACE);
 		mappingShader.Use();
@@ -586,7 +584,7 @@ int main()
 		glUniform1i(glGetUniformLocation(mappingShader.Program, "material.specular"), 3);
 		glUniform1i(glGetUniformLocation(mappingShader.Program, "normalMap"), 4);
 		glUniform1i(glGetUniformLocation(mappingShader.Program, "depthMap"), 4);
-		glUniform1f(glGetUniformLocation(mappingShader.Program, "height_scale"), 0.1f);
+		glUniform1f(glGetUniformLocation(mappingShader.Program, "heightScale"), 0.05f);
 
 		glUniform3fv(glGetUniformLocation(mappingShader.Program, "viewPos"), 1, &camera.Position[0]);
 		glUniform1f(glGetUniformLocation(mappingShader.Program, "material.shininess"), chrome.shininess);
@@ -683,7 +681,7 @@ int main()
 
 				glUniformMatrix4fv(glGetUniformLocation(borderShader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
 
-				glBindVertexArray(VAO);
+				glBindVertexArray(pyraVAO);
 				glDrawArrays(GL_TRIANGLES, 0, 12);
 				glBindVertexArray(0);
 			}
@@ -712,8 +710,8 @@ int main()
 	}
 
 	glDeleteVertexArrays(1, &cubeVAO);
-	glDeleteVertexArrays(1, &VAO);
-	glDeleteBuffers(2, &VBO);
+	glDeleteVertexArrays(1, &pyraVAO);
+	glDeleteBuffers(2, &pyraVBO);
 	glfwTerminate();
 
 	return 0;
@@ -726,13 +724,13 @@ void processInput(GLFWwindow *window)
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-		camera.ProcessKeyboard(Camera_Movement::FORWARD, 2.0f * deltaTime);
+		camera.ProcessKeyboard(Camera_Movement::FORWARD, deltaTime);
 	} else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-		camera.ProcessKeyboard(Camera_Movement::BACKWARD, 2.0f * deltaTime);
+		camera.ProcessKeyboard(Camera_Movement::BACKWARD, deltaTime);
 	} else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-		camera.ProcessKeyboard(Camera_Movement::LEFT, 2.0f * deltaTime);
+		camera.ProcessKeyboard(Camera_Movement::LEFT, deltaTime);
 	} else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-		camera.ProcessKeyboard(Camera_Movement::RIGHT, 2.0f * deltaTime);
+		camera.ProcessKeyboard(Camera_Movement::RIGHT, deltaTime);
 	} else if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
 		borderColor = glm::vec3(0.78f, 0.1f, 0.52f);
 	} else if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
