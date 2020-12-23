@@ -48,14 +48,6 @@ uniform float curTime;
 
 uniform Material material;
 
-//float near = 0.1f; 
-//float far  = 100.0f; 
-  
-//float LinearizeDepth(float depth) 
-//{
-//    float z = depth * 2.0f - 1.0f;
-//    return (2.0f * near * far) / (far + near - z * (far - near));	
-//}
 
 void main()
 {
@@ -68,13 +60,7 @@ void main()
         resLight += calcPointLight(pointLights[i], normal, FragPos, viewDir); 
     }
 
-    //if (texture(material.specular, TexCoord).r < 0.1) {
-    //    resLight += (0.5f + 0.5f * sin(0.5 * curTime)) * vec3(texture(material.emission, TexCoord)); // emissLight
-    //}
-
-    float gamma = 2.2;
     FragColor = resLight;
-    //FragColor.rgb = pow(FragColor.rgb, vec3(1.0/gamma));
 }
 
 vec4 calcDirLight(DirLight light, vec3 normal, vec3 viewDir)

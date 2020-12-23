@@ -127,7 +127,7 @@ public:
     {
         if (Zoom >= 1.0f && Zoom <= 45.0f)
             Zoom -= yoffset;
-        Zoom = Zoom <= 1.0f ? 1.0f : Zoom;
+        Zoom = Zoom <= 10.0f ? 10.0f : Zoom;
         Zoom = Zoom >= 45.0f ? 45.0f : Zoom;
     }
 

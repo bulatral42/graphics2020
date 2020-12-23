@@ -67,12 +67,12 @@ void main()
     vec3 viewDir = normalize(fsh_in.TangentViewPos - fsh_in.TangentFragPos);
     newTexCoord = reliefPM(fsh_in.TexCoord,  viewDir);
 
-    if (newTexCoord.x > 9.0 || newTexCoord.y > 9.0 || newTexCoord.x < 0.0 || newTexCoord.y < 0.0) {
+    if (newTexCoord.x > 10.0 || newTexCoord.y > 10.0 || newTexCoord.x < 0.0 || newTexCoord.y < 0.0) {
         discard;
     }
 
     vec3 normal = texture(normalMap, newTexCoord).rgb;
-    normal = normalize(normal * 2.0 - 1.0); // tangent space
+    normal = normalize(normal * 2.0f - 1.0f); // tangent space
     
     vec4 resLight = calcDirLight(dirLight, normal, viewDir);
 
@@ -80,13 +80,7 @@ void main()
         resLight += calcPointLight(pointLights[i], normal, fsh_in.FragPos, viewDir); 
     }
 
-    //if (texture(material.specular, TexCoord).r < 0.1) {
-    //    resLight += (0.5f + 0.5f * sin(0.5 * curTime)) * vec3(texture(material.emission, newTexCoord)); // emissLight
-    //}
-
-    float gamma = 2.2;
     FragColor = resLight;
-    //FragColor.rgb = pow(FragColor.rgb, vec3(1.0 / gamma));
 }
 
 vec4 calcDirLight(DirLight light, vec3 normal, vec3 viewDir)
@@ -99,7 +93,7 @@ vec4 calcDirLight(DirLight light, vec3 normal, vec3 viewDir)
 
     vec4 ambLight  = textureDiffuse * vec4(light.ambient, 1.0f);
     vec4 diffLight = max(0.0f, dot(normal, lightDir)) * textureDiffuse * vec4(light.diffuse, 1.0f);
-    vec4 specLight = pow(max(0.0f, dot(normal, halfwayDir/*reflDir*/)), material.shininess) * textureSpecular * vec4(light.specular, 1.0f);
+    vec4 specLight = pow(max(0.0f, dot(normal, halfwayDir)), material.shininess) * textureSpecular * vec4(light.specular, 1.0f);
 
     return ambLight + diffLight + specLight;
 }
@@ -116,12 +110,6 @@ vec4 calcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
 
 	vec4 tmpLight = calcDirLight(asDirLight, normal, viewDir);
 	return attenuation * tmpLight;
-}
-
-float depthValue(vec2 texCoord)
-{
-    return texture(depthMap, texCoord).r;
-    //return texCoord.r;
 }
 
 vec2 reliefPM(vec2 texCoord, vec3 viewDir)

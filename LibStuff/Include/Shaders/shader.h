@@ -10,7 +10,7 @@
 struct Shader
 {
     GLuint Program;
-    Shader(const GLchar* vertexPath, const GLchar* fragmentPath) {
+    Shader(const GLchar *vertexPath, const GLchar *fragmentPath) {
         std::string vertexCode;
         std::string fragmentCode;
         std::ifstream vShaderFile;
@@ -33,8 +33,8 @@ struct Shader
         } catch (std::ifstream::failure e) {
             std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << std::endl;
         }
-        const GLchar* vShaderCode = vertexCode.c_str();
-        const GLchar* fShaderCode = fragmentCode.c_str();
+        const GLchar *vShaderCode = vertexCode.c_str();
+        const GLchar *fShaderCode = fragmentCode.c_str();
 
         GLuint vertex, fragment;
         GLint success;

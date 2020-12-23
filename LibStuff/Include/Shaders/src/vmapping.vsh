@@ -28,7 +28,7 @@ uniform vec3 viewPos;
 void main()
 {
     vsh_out.FragPos = vec3(model * vec4(pos, 1.0));
-    vsh_out.TexCoord = texCoord;
+    vsh_out.TexCoord = texCoord;//vec2(texCoord.y, texCoord.x);
 
     mat3 normalMatrix = transpose(inverse(mat3(model)));
     vec3 T = normalize(normalMatrix * Tangent);

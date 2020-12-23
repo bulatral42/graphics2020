@@ -69,7 +69,7 @@ int main()
 	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
 	// Window
-	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Road to Zachet", nullptr, nullptr);
+	GLFWwindow *window = glfwCreateWindow(WIDTH, HEIGHT, "Road to Zachet", nullptr, nullptr);
 	if (window == nullptr) {
 		std::cout << "Window creation error" << std::endl;
 		glfwTerminate();
@@ -110,7 +110,7 @@ int main()
 
 	// Pyramid
 	GLfloat vertPyramid[] = {
-		-0.5f, -0.5f, 0.0f,  0.0f, 0.0f,  0.0f, 0.0f, 1.0f,
+	   -0.5f, -0.5f, 0.0f,  0.0f, 0.0f,  0.0f, 0.0f, 1.0f,
 		0.5f, -0.5f, 0.0f,   4.0f, 0.0f,  0.0f, 0.0f, 1.0f,
 		0.0f,  0.5f, 0.0f,   2.0f, 4.0f,  0.0f, 0.0f, 1.0f,
 
@@ -119,7 +119,7 @@ int main()
 		0.0f,  0.5f, 0.0f,   2.0f, 4.0f,  0.66f, 0.34f, -0.66f,
 
 		0.0f, -0.5f, -0.5f,  0.0f, 0.0f,  -0.66f, 0.34f, -0.66f,
-		-0.5f, -0.5f, 0.0f,  4.0f, 0.0f,  -0.66f, 0.34f, -0.66f,
+	   -0.5f, -0.5f, 0.0f,  4.0f, 0.0f,  -0.66f, 0.34f, -0.66f,
 		0.0f,  0.5f, 0.0f,   2.0f, 4.0f,  -0.66f, 0.34f, -0.66f,
 
 		-0.5f, -0.5f, 0.0f,  0.0f, 0.0f,  0.0f, 1.0f, 0.0f,
@@ -209,14 +209,14 @@ int main()
 	glBindVertexArray(0);
 
 
-	GLfloat vertPlane[] = {
-		 10.0f, -6.0f,  10.0f,  9.0f, 0.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f,
-		-10.0f, -6.0f, -10.0f,  0.0f, 9.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f,
-		-10.0f, -6.0f,  10.0f,  0.0f, 0.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f,
+	GLfloat vertPlane[] = {//pos // texture // norm // tan // bitan
+		 10.0f, -6.0f,  10.0f,  10.0f, 0.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 0.0f, -1.0f,
+		-10.0f, -6.0f, -10.0f,  0.0f, 10.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 0.0f, -1.0f,
+		-10.0f, -6.0f,  10.0f,  0.0f, 0.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 0.0f, -1.0f,
 
-		 10.0f, -6.0f,  10.0f,  9.0f, 0.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f,
-		 10.0f, -6.0f, -10.0f,  9.0f, 9.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f,
-		-10.0f, -6.0f, -10.0f,  0.0f, 9.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f
+		 10.0f, -6.0f,  10.0f,  10.0f, 0.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 0.0f, -1.0f,
+		 10.0f, -6.0f, -10.0f,  10.0f, 10.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 0.0f, -1.0f,
+		-10.0f, -6.0f, -10.0f,  0.0f, 10.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 0.0f, -1.0f
 	};
 
 	GLuint planeVAO, planeVBO;
@@ -332,15 +332,7 @@ int main()
 	}
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	std::vector<std::string> skyfacesSea {
-		"evening_right.jpg",
-		"evening_left.jpg",
-		"evening_top.jpg",
-		"evening_bot.jpg",
-		"evening_front.jpg",
-		"evening_back.jpg"
-		
-	};
+
 	std::vector<std::string> skyfacesSpace {
 		"textures/bkg1_right.png",
 		"textures/bkg1_left.png",
@@ -354,7 +346,7 @@ int main()
 	GLuint diffuseMap = loadTexture("textures/container_diff.png");
 	GLuint specularMap = loadTexture("textures/container_spec.png");
 	GLuint emissionMap = loadTexture("textures/container_emission.jpg");
-	GLuint floorMap = loadTexture("textures/bricks2.jpg"); //loadTexture("floor_laminate.jpg");
+	GLuint floorMap = loadTexture("textures/bricks2.jpg");
 	GLuint floorNormalMap = loadTexture("textures/bricks2_normal.jpg");
 	GLuint floorDepthMap = loadTexture("textures/bricks2_depth.jpg");
 	GLuint windowMap = loadTexture("textures/window_red.png");
@@ -387,7 +379,8 @@ int main()
 	Material gold{ glm::vec3(0.24725f, 0.1995f, 0.0745),
 				   glm::vec3(0.75164f, 0.60648f, 0.22648f),
 				   glm::vec3(0.628281f, 0.555802f, 0.366065f),
-				   51.2f };
+				   51.2f 
+    };
 
 	Material chrome{ glm::vec3(0.25f, 0.25f, 0.25f),
 				     glm::vec3(0.4f, 0.4f, 0.4f),
@@ -397,8 +390,6 @@ int main()
 
 
 	// Run
-	// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	// glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	while (!glfwWindowShouldClose(window)) {
 		glBindFramebuffer(GL_FRAMEBUFFER, FBO);
 		
@@ -422,7 +413,7 @@ int main()
 		skyboxShader.Use();
 
 		glStencilMask(0x00);
-		glDisable(GL_CULL_FACE);
+		glDisable(GL_CULL_FACE); // отсечение граней
 		glDepthMask(GL_FALSE);
 
 		glm::mat4 viewSky = glm::mat4(glm::mat3(camera.GetViewMatrix()));
@@ -662,7 +653,6 @@ int main()
 
 		// Borders
 		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-		glStencilMask(0x00);
 		glDisable(GL_DEPTH_TEST);
 		glEnable(GL_CULL_FACE);
 		borderShader.Use();
