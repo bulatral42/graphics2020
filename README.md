@@ -15,6 +15,6 @@ _Группа_ _303_
 | Parallax relief mapping | 4 |
 
 Интсрукция по сборке:
-1. В директории graphics2020 запустить graphics2020.sln в Microsoft Visual Studio
+1. В корневой директории запустить graphics2020.sln в Microsoft Visual Studio
 2. Собрать проект
 3. Запустить (Исполняемый файл - /Debug/graphics2020.exe)
