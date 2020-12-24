@@ -1,6 +1,7 @@
 #include <iostream>
 #include <map>
 #include <vector>
+#include <algorithm>
 
 #define GLEW_STATIC
 #include <GL/glew.h>
@@ -210,13 +211,13 @@ int main()
 
 
 	GLfloat vertPlane[] = {//pos // texture // norm // tan // bitan
-		 10.0f, -6.0f,  10.0f,  10.0f, 0.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 0.0f, -1.0f,
-		-10.0f, -6.0f, -10.0f,  0.0f, 10.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 0.0f, -1.0f,
-		-10.0f, -6.0f,  10.0f,  0.0f, 0.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 0.0f, -1.0f,
+		 10.0f, -5.0f,  10.0f,  8.0f, 0.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 0.0f, -1.0f,
+		-10.0f, -5.0f, -10.0f,  0.0f, 8.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 0.0f, -1.0f,
+		-10.0f, -5.0f,  10.0f,  0.0f, 0.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 0.0f, -1.0f,
 
-		 10.0f, -6.0f,  10.0f,  10.0f, 0.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 0.0f, -1.0f,
-		 10.0f, -6.0f, -10.0f,  10.0f, 10.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 0.0f, -1.0f,
-		-10.0f, -6.0f, -10.0f,  0.0f, 10.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 0.0f, -1.0f
+		 10.0f, -5.0f,  10.0f,  8.0f, 0.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 0.0f, -1.0f,
+		 10.0f, -5.0f, -10.0f,  8.0f, 8.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 0.0f, -1.0f,
+		-10.0f, -5.0f, -10.0f,  0.0f, 8.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 0.0f, -1.0f
 	};
 
 	GLuint planeVAO, planeVBO;
@@ -346,9 +347,9 @@ int main()
 	GLuint diffuseMap = loadTexture("textures/container_diff.png");
 	GLuint specularMap = loadTexture("textures/container_spec.png");
 	GLuint emissionMap = loadTexture("textures/container_emission.jpg");
-	GLuint floorMap = loadTexture("textures/bricks2.jpg");
-	GLuint floorNormalMap = loadTexture("textures/bricks2_normal.jpg");
-	GLuint floorDepthMap = loadTexture("textures/bricks2_depth.jpg");
+	GLuint floorMap = loadTexture("textures/brickfloor.jpg");
+	GLuint floorNormalMap = loadTexture("textures/brickfloor_normal.jpg");
+	GLuint floorDepthMap = loadTexture("textures/brickfloor_depth.jpg");
 	GLuint windowMap = loadTexture("textures/window_red.png");
 	GLuint skyboxTexture = loadCubeMap(skyfacesSpace);
 
@@ -575,7 +576,7 @@ int main()
 		glUniform1i(glGetUniformLocation(mappingShader.Program, "material.specular"), 3);
 		glUniform1i(glGetUniformLocation(mappingShader.Program, "normalMap"), 4);
 		glUniform1i(glGetUniformLocation(mappingShader.Program, "depthMap"), 4);
-		glUniform1f(glGetUniformLocation(mappingShader.Program, "heightScale"), 0.05f);
+		glUniform1f(glGetUniformLocation(mappingShader.Program, "heightScale"), 0.1f);
 
 		glUniform3fv(glGetUniformLocation(mappingShader.Program, "viewPos"), 1, &camera.Position[0]);
 		glUniform1f(glGetUniformLocation(mappingShader.Program, "material.shininess"), chrome.shininess);
@@ -624,7 +625,6 @@ int main()
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 
 
-
 		// Windows
 		objectShader.Use();
 		glActiveTexture(GL_TEXTURE4);
@@ -634,11 +634,13 @@ int main()
 		glUniform1i(glGetUniformLocation(objectShader.Program, "material.ambient"), 4);
 		glUniform1i(glGetUniformLocation(objectShader.Program, "material.specular"), 4);
 
-		std::map<GLfloat, glm::vec3> sortedWindows;
+		std::vector<std::pair<GLfloat, glm::vec3>> sortedWindows;
 		for (size_t i = 0; i < windowPos.size(); ++i) {
 			GLfloat distance = glm::length(camera.Position - windowPos[i]);
-			sortedWindows[distance] = windowPos[i];
+			sortedWindows.push_back(std::make_pair(distance, windowPos[i]));
 		}
+		std::sort(sortedWindows.begin(), sortedWindows.end(), 
+			      [](std::pair<GLfloat, glm::vec3> v1, std::pair<GLfloat, glm::vec3> v2) { return v1.first < v2.first;  });
 		glBindVertexArray(windowVAO); 
 		for (auto it = sortedWindows.rbegin(); it != sortedWindows.rend(); ++it) {
 			model = glm::mat4(1.0f);
